@@ -8,14 +8,18 @@ A thematic quiz application with FastAPI backend and Streamlit frontend.
 inno_quiz/
 ├── backend/          # FastAPI backend application
 │   ├── app/          # Application code
+│   ├── domain/       # Domain objects and DTOs
+│   ├── models/       # SQLAlchemy ORM models
+│   ├── gateways/     # Code for interaction with external services
 │   ├── alembic/      # Database migrations
 │   └── tests/        # Backend tests
-├── frontend/         # Streamlit frontend application
-│   └── app/          # Frontend code
-└── shared/           # Shared code between frontend and backend
+└── frontend/         # Streamlit frontend application
+    └── app/          # Frontend code
 ```
 
 ## Setup
+
+Navigate to `inno_quiz/`
 
 1. Install dependencies:
 ```bash
@@ -30,7 +34,7 @@ cp .env.example .env
 
 3. Initialize the database:
 ```bash
-cd inno_quiz/backend
+cd backend
 alembic upgrade head
 ```
 
@@ -38,13 +42,13 @@ alembic upgrade head
 
 1. Start the backend server:
 ```bash
-cd inno_quiz/backend
+cd backend
 uvicorn app.main:app --reload
 ```
 
 2. Start the frontend:
 ```bash
-cd inno_quiz/frontend
+cd frontend
 streamlit run app/main.py
 ```
 
