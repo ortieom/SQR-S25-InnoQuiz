@@ -7,9 +7,11 @@ A thematic quiz application with FastAPI backend and Streamlit frontend.
 ```
 inno_quiz/
 ├── backend/          # FastAPI backend application
-│   ├── app/          # Application code
+│   ├── endpoints/    # FastAPI routes
+│   ├── service/      # Main app logic
 │   ├── domain/       # Domain objects and DTOs
 │   ├── models/       # SQLAlchemy ORM models
+│   ├── repo/         # CRUD logic
 │   ├── gateways/     # Code for interaction with external services
 │   ├── alembic/      # Database migrations
 │   └── tests/        # Backend tests
