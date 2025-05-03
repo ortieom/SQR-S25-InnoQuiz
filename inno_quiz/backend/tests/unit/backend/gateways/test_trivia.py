@@ -4,7 +4,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 import requests
 
-from inno_quiz.backend.gateways.trivia import TriviaGateway, TriviaQuestion
+from backend.gateways.trivia import TriviaGateway, TriviaQuestion
 
 
 @pytest.fixture
