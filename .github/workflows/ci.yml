@@ -31,22 +31,14 @@ jobs:
     
     - name: Lint with flake8
       run: |
-        cd inno_quiz/backend
-        poetry run flake8
+        cd inno_quiz
+        poetry run flake8 backend
     
-    - name: Test with pytest
+    - name: Test with pytest and check coverage
       run: |
         cd inno_quiz/backend
         # Create a dummy .env file for tests
         cp .env.example .env
         
-        # Run tests excluding external API tests
-        poetry run pytest -m "not external" --cov=. --cov-report=xml
-    
-    - name: Upload coverage report
-      uses: codecov/codecov-action@v4
-      with:
-        file: ./inno_quiz/coverage.xml
-        fail_ci_if_error: true
-        # The minimum coverage percentage should be 60% according to requirements
-        threshold: 60% 
+        # Run tests excluding external API tests with minimum coverage of 60%
+        poetry run pytest -m "not external" --cov=backend --cov-report=term --cov-fail-under=60 
