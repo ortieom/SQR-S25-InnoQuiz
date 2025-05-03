@@ -14,7 +14,8 @@ inno_quiz/
 │   ├── repo/         # CRUD logic
 │   ├── gateways/     # Code for interaction with external services
 │   ├── alembic/      # Database migrations
-│   └── tests/        # Backend tests
+│   ├── auth/         # Authentication logic
+│   └── tests/        # Backend tests inside the backend directory
 └── frontend/         # Streamlit frontend application
     └── app/          # Frontend code
 ```
@@ -44,6 +45,7 @@ alembic upgrade head
 
 1. Start the backend server:
 ```bash
+cd backend
 uvicorn main:app --reload
 ```
 
@@ -51,6 +53,14 @@ uvicorn main:app --reload
 ```bash
 cd frontend
 streamlit run app/main.py
+```
+
+## Testing
+
+Run the tests with coverage:
+```bash
+cd backend
+pytest --cov=. --cov-report=term --cov-fail-under=60 -m "not external"
 ```
 
 ## Development
