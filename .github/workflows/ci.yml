@@ -38,7 +38,7 @@ jobs:
       run: |
         cd inno_quiz/backend
         # Create a dummy .env file for tests
-        cp env.example .env
+        cp .env.example .env
         
         # Run tests excluding external API tests
         poetry run pytest -m "not external" --cov=. --cov-report=xml
