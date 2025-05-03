@@ -14,6 +14,7 @@ inno_quiz/
 │   ├── repo/         # CRUD logic
 │   ├── gateways/     # Code for interaction with external services
 │   ├── alembic/      # Database migrations
+│   ├── auth/         # Authentication logic
 │   └── tests/        # Backend tests
 └── frontend/         # Streamlit frontend application
     └── app/          # Frontend code
@@ -30,13 +31,13 @@ poetry install
 
 2. Set up environment variables:
 ```bash
+cd backend
 cp .env.example .env
 # Replace placeholders in .env with your configuration
 ```
 
 3. Initialize the database:
 ```bash
-cd backend
 alembic upgrade head
 ```
 
@@ -45,13 +46,21 @@ alembic upgrade head
 1. Start the backend server:
 ```bash
 cd backend
-uvicorn app.main:app --reload
+uvicorn main:app --reload
 ```
 
 2. Start the frontend:
 ```bash
 cd frontend
 streamlit run app/main.py
+```
+
+## Testing
+
+Run the tests with coverage:
+```bash
+cd backend
+pytest --cov=. --cov-report=term --cov-fail-under=60 -m "not external"
 ```
 
 ## Development

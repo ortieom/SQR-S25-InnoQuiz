@@ -1,0 +1,9 @@
+[flake8]
+max-line-length = 100
+extend-ignore = E203
+exclude = .git,__pycache__,build,dist,.venv,alembic
+per-file-ignores =
+    # Allow imports in __init__.py files
+    __init__.py: F401
+    # Allow undefined names in conftest.py for fixtures
+    tests/conftest.py: F401, F811 
