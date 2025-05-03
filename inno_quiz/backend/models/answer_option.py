@@ -7,11 +7,9 @@ from .base import Base
 class AnswerOption(Base):
     __tablename__ = "answer_options"
 
-    answer_id: Mapped[int] = mapped_column(
-        Integer, primary_key=True, autoincrement=True
-    )
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     question_id: Mapped[int] = mapped_column(
-        Integer, ForeignKey("questions.question_id"), nullable=False
+        Integer, ForeignKey("questions.id"), nullable=False
     )
     text: Mapped[str] = mapped_column(String(512), nullable=False)
     is_correct: Mapped[bool] = mapped_column(Boolean, default=False)

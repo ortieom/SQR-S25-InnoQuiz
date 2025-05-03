@@ -35,15 +35,15 @@ class Category(Enum):
 
 class QuizBase(BaseModel):
     name: str
-    category: Category
+    category: int
     is_submitted: bool = False
 
 
 class QuizCreate(QuizBase):
-    pass
+    author_username: str
 
 
 class QuizRead(QuizBase):
-    quiz_id: UUID
+    id: UUID
     author_username: str
     created_at: datetime

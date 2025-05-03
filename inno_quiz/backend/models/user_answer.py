@@ -10,10 +10,10 @@ class UserAnswer(Base):
     __tablename__ = "user_answers"
 
     attempt_id: Mapped[int] = mapped_column(
-        Integer, ForeignKey("user_attempts.attempt_id"), primary_key=True
+        Integer, ForeignKey("user_attempts.id"), primary_key=True
     )
     answer_id: Mapped[int] = mapped_column(
-        Integer, ForeignKey("answer_options.answer_id"), primary_key=True
+        Integer, ForeignKey("answer_options.id"), primary_key=True
     )
     submitted_at: Mapped[datetime] = mapped_column(
         DateTime, default=datetime.now(timezone.utc)

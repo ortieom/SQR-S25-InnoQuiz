@@ -14,5 +14,5 @@ class UserAttemptCreate(UserAttemptBase):
 
 
 class UserAttemptRead(UserAttemptBase):
-    attempt_id: int
+    id: int
     started_at: datetime

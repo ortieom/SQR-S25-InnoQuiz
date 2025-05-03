@@ -11,5 +11,5 @@ class AnswerOptionCreate(AnswerOptionBase):
 
 
 class AnswerOptionRead(AnswerOptionBase):
-    answer_id: int
+    id: int
     question_id: int

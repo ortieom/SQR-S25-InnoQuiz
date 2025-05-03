@@ -12,5 +12,5 @@ class QuestionCreate(QuestionBase):
 
 
 class QuestionRead(QuestionBase):
-    question_id: int
+    id: int
     quiz_id: UUID

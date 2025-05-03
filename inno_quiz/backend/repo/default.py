@@ -6,7 +6,7 @@ from typing import Any, Dict, Generic, List, Optional, Type, TypeVar, Union
 
 from pydantic import BaseModel
 from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import Session
 
 from backend.models import Base
 
@@ -35,41 +35,38 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         """
         self.model = model
 
-    async def get_by_id(self, db: AsyncSession, obj_id: Any) -> Optional[ModelType]:
+    def get_by_id(self, db: Session, obj_id: Any) -> Optional[ModelType]:
         """
         Get object by id
         None if nothing found
         """
-        res = await db.scalar(
-            select(self.model).filter(self.model.id == obj_id).limit(1)
-        )
+        res = db.scalar(select(self.model).filter(self.model.id == obj_id).limit(1))
         return res
 
-    async def get_multi(
-        self, db: AsyncSession, skip: int = 0, limit: int = 100
+    def get_multi(
+        self, db: Session, skip: int = 0, limit: int = 100
     ) -> List[ModelType]:
         """
         Get objects (paginated)
         """
-        res = await db.scalars(
+        res = db.scalars(
             select(self.model).order_by(self.model.id).offset(skip).limit(limit)
         )
         return res.all()
 
-    async def create(self, db: AsyncSession, obj_in: CreateSchemaType) -> ModelType:
+    def create(self, db: Session, obj_in: CreateSchemaType) -> ModelType:
         """
         Store new object in database
         """
         db_obj = self.model(**obj_in.model_dump())  # type: ignore
-
         db.add(db_obj)
-        await db.commit()
-        await db.refresh(db_obj)
+        db.commit()
+        db.refresh(db_obj)
         return db_obj
 
-    async def update(
+    def update(
         self,
-        db: AsyncSession,
+        db: Session,
         *,
         db_obj: ModelType,
         obj_in: Union[UpdateSchemaType, Dict[str, Any]],
@@ -86,15 +83,15 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
             if field in update_data:
                 setattr(db_obj, field, update_data[field])
         db.add(db_obj)
-        await db.commit()
-        await db.refresh(db_obj)
+        db.commit()
+        db.refresh(db_obj)
         return db_obj
 
-    async def remove_by_id(self, db: AsyncSession, obj_id: int) -> ModelType:
+    def remove_by_id(self, db: Session, obj_id: int) -> ModelType:
         """
         Delete object from database by id
         """
-        obj = await self.get_by_id(db, obj_id)
-        await db.delete(obj)
-        await db.commit()
+        obj = self.get_by_id(db, obj_id)
+        db.delete(obj)
+        db.commit()
         return obj
