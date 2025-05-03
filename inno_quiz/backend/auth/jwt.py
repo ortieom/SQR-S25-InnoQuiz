@@ -7,10 +7,9 @@ from jose import JWTError, jwt
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
-# Modified imports for running from backend directory
-from config import settings
-from db import get_db
-from repo.user import get_user_by_username
+from backend.config import settings
+from backend.db import get_db
+from backend.repo.user import get_user_by_username
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="v1/users/login")
 

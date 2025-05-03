@@ -5,15 +5,14 @@ from fastapi import APIRouter, Depends, HTTPException, status, Response
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 
-# Modified imports for running from backend directory
-from auth import create_access_token, get_password_hash, verify_password
-from config import settings
-from db import get_db
-from domain.auth import Token
-from domain.user import UserCreate, UserRead, UserInfo
-from models.user import User
-from repo.user import create_user, get_user_by_username, verify_username_unique
-from deps import get_current_user_from_cookie
+from backend.auth import create_access_token, get_password_hash, verify_password
+from backend.config import settings
+from backend.db import get_db
+from backend.domain.auth import Token
+from backend.domain.user import UserCreate, UserRead, UserInfo
+from backend.models.user import User
+from backend.repo.user import create_user, get_user_by_username, verify_username_unique
+from backend.deps import get_current_user_from_cookie
 
 router = APIRouter(prefix="/users", tags=["users"])
 

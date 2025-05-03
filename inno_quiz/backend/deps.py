@@ -2,12 +2,11 @@ from fastapi import Cookie, Depends, HTTPException, status
 from jose import JWTError, jwt
 from sqlalchemy.orm import Session
 
-# Modified imports for running from backend directory
-from auth.jwt import TokenData
-from config import settings
-from db import get_db
-from models.user import User
-from repo.user import get_user_by_username
+from backend.auth.jwt import TokenData
+from backend.config import settings
+from backend.db import get_db
+from backend.models.user import User
+from backend.repo.user import get_user_by_username
 
 
 def get_current_user_from_cookie(

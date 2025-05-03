@@ -7,9 +7,10 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, Session
 from sqlalchemy.pool import StaticPool
 
-from db import get_db
-from main import app
-from models.base import Base
+from backend.db import get_db
+from backend.main import app
+from backend.models.base import Base
+
 
 # Use in-memory SQLite database for testing
 TEST_DATABASE_URL = "sqlite:///:memory:"

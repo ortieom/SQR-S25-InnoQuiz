@@ -3,8 +3,8 @@ from typing import Optional
 from sqlalchemy.orm import Session
 
 from .default import CRUDBase
-from models.user import User
-from domain.user import UserCreate, UserRead
+from backend.models.user import User
+from backend.domain.user import UserCreate, UserRead
 
 
 class UserRepo(CRUDBase[User, UserCreate, UserRead]):
