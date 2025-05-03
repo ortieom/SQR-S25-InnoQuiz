@@ -30,13 +30,13 @@ poetry install
 
 2. Set up environment variables:
 ```bash
+cd backend
 cp .env.example .env
 # Replace placeholders in .env with your configuration
 ```
 
 3. Initialize the database:
 ```bash
-cd backend
 alembic upgrade head
 ```
 
@@ -44,8 +44,7 @@ alembic upgrade head
 
 1. Start the backend server:
 ```bash
-cd backend
-uvicorn app.main:app --reload
+uvicorn main:app --reload
 ```
 
 2. Start the frontend:
