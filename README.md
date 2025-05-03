@@ -15,7 +15,7 @@ inno_quiz/
 │   ├── gateways/     # Code for interaction with external services
 │   ├── alembic/      # Database migrations
 │   ├── auth/         # Authentication logic
-│   └── tests/        # Backend tests inside the backend directory
+│   └── tests/        # Backend tests
 └── frontend/         # Streamlit frontend application
     └── app/          # Frontend code
 ```
