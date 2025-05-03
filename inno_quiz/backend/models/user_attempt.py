@@ -1,8 +1,10 @@
-from .base import Base
+from datetime import datetime, timezone
+
 from sqlalchemy import Integer, String, DateTime, ForeignKey
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from datetime import datetime, timezone
+
+from .base import Base
 
 
 class UserAttempt(Base):

@@ -8,7 +8,6 @@ from pydantic import BaseModel
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from backend import models
 from backend.models import Base
 
 ModelType = TypeVar("ModelType", bound=Base)  # pylint: disable=invalid-name
@@ -62,12 +61,6 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         Store new object in database
         """
         db_obj = self.model(**obj_in.model_dump())  # type: ignore
-
-        # custom string id
-        if self.model.id.type.python_type is str and db_obj.id is None:
-            # format class_name-number
-            model_id = f"{self.model.__name__.lower()}-{await self.get_new_id_cnt(db)}"
-            setattr(db_obj, "id", model_id)
 
         db.add(db_obj)
         await db.commit()

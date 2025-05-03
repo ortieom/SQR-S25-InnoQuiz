@@ -5,3 +5,6 @@ from backend.domain.question import QuestionCreate, QuestionRead
 
 class QuestionRepo(CRUDBase[Question, QuestionCreate, QuestionRead]):
     pass
+
+
+question = QuestionRepo(Question)

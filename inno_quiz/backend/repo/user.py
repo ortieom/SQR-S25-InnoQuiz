@@ -5,3 +5,6 @@ from backend.domain.user import UserCreate, UserRead
 
 class UserRepo(CRUDBase[User, UserCreate, UserRead]):
     pass
+
+
+user = UserRepo(User)
