@@ -40,5 +40,5 @@ jobs:
         # Create a dummy .env file for tests
         cp .env.example .env
         
-        # Run tests excluding external API tests with minimum coverage of 60%
-        poetry run pytest -m "not external" --cov=backend --cov-report=term --cov-fail-under=60 
+        # Run all tests with coverage
+        poetry run pytest --cov=. --cov-report=term --cov-fail-under=60 

@@ -63,4 +63,4 @@ class TriviaGateway:
 
 
 # Create a singleton instance
-trivia_gateway = TriviaGateway() 
+trivia_gateway = TriviaGateway()

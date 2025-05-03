@@ -8,4 +8,4 @@ class TriviaQuestion(BaseModel):
     difficulty: str
     question: str
     correct_answer: str
-    incorrect_answers: List[str] 
+    incorrect_answers: List[str]
