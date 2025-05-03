@@ -11,7 +11,7 @@ from .base import Base
 class Quiz(Base):
     __tablename__ = "quizzes"
 
-    quiz_id: Mapped[str] = mapped_column(
+    id: Mapped[str] = mapped_column(
         UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
     )
     author_username: Mapped[str] = mapped_column(

@@ -1,8 +1,8 @@
-"""Initial migration
+"""initial revision
 
-Revision ID: ea4143efef9e
+Revision ID: 1258a6cd3279
 Revises: 
-Create Date: 2025-05-02 14:58:46.975101
+Create Date: 2025-05-03 10:37:15.186951
 
 """
 from typing import Sequence, Union
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = 'ea4143efef9e'
+revision: str = '1258a6cd3279'
 down_revision: Union[str, None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -27,45 +27,45 @@ def upgrade() -> None:
     sa.PrimaryKeyConstraint('username')
     )
     op.create_table('quizzes',
-    sa.Column('quiz_id', sa.UUID(), nullable=False),
+    sa.Column('id', sa.UUID(), nullable=False),
     sa.Column('author_username', sa.String(length=64), nullable=False),
     sa.Column('name', sa.String(length=128), nullable=False),
     sa.Column('category', sa.String(length=64), nullable=False),
     sa.Column('is_submitted', sa.Boolean(), nullable=False),
     sa.Column('created_at', sa.DateTime(), nullable=False),
     sa.ForeignKeyConstraint(['author_username'], ['users.username'], ),
-    sa.PrimaryKeyConstraint('quiz_id')
+    sa.PrimaryKeyConstraint('id')
     )
     op.create_table('questions',
-    sa.Column('question_id', sa.Integer(), autoincrement=True, nullable=False),
+    sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
     sa.Column('quiz_id', sa.UUID(), nullable=False),
     sa.Column('text', sa.String(length=512), nullable=False),
-    sa.ForeignKeyConstraint(['quiz_id'], ['quizzes.quiz_id'], ),
-    sa.PrimaryKeyConstraint('question_id')
+    sa.ForeignKeyConstraint(['quiz_id'], ['quizzes.id'], ),
+    sa.PrimaryKeyConstraint('id')
     )
     op.create_table('user_attempts',
-    sa.Column('attempt_id', sa.Integer(), autoincrement=True, nullable=False),
+    sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
     sa.Column('username', sa.String(length=64), nullable=False),
     sa.Column('quiz_id', sa.UUID(), nullable=False),
     sa.Column('started_at', sa.DateTime(), nullable=False),
-    sa.ForeignKeyConstraint(['quiz_id'], ['quizzes.quiz_id'], ),
+    sa.ForeignKeyConstraint(['quiz_id'], ['quizzes.id'], ),
     sa.ForeignKeyConstraint(['username'], ['users.username'], ),
-    sa.PrimaryKeyConstraint('attempt_id')
+    sa.PrimaryKeyConstraint('id')
     )
     op.create_table('answer_options',
-    sa.Column('answer_id', sa.Integer(), autoincrement=True, nullable=False),
+    sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
     sa.Column('question_id', sa.Integer(), nullable=False),
     sa.Column('text', sa.String(length=512), nullable=False),
     sa.Column('is_correct', sa.Boolean(), nullable=False),
-    sa.ForeignKeyConstraint(['question_id'], ['questions.question_id'], ),
-    sa.PrimaryKeyConstraint('answer_id')
+    sa.ForeignKeyConstraint(['question_id'], ['questions.id'], ),
+    sa.PrimaryKeyConstraint('id')
     )
     op.create_table('user_answers',
     sa.Column('attempt_id', sa.Integer(), nullable=False),
     sa.Column('answer_id', sa.Integer(), nullable=False),
     sa.Column('submitted_at', sa.DateTime(), nullable=False),
-    sa.ForeignKeyConstraint(['answer_id'], ['answer_options.answer_id'], ),
-    sa.ForeignKeyConstraint(['attempt_id'], ['user_attempts.attempt_id'], ),
+    sa.ForeignKeyConstraint(['answer_id'], ['answer_options.id'], ),
+    sa.ForeignKeyConstraint(['attempt_id'], ['user_attempts.id'], ),
     sa.PrimaryKeyConstraint('attempt_id', 'answer_id')
     )
     # ### end Alembic commands ###
