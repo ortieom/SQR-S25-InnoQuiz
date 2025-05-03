@@ -5,3 +5,6 @@ from backend.domain.user_attempt import UserAttemptCreate, UserAttemptRead
 
 class UserAttemptRepo(CRUDBase[UserAttempt, UserAttemptCreate, UserAttemptRead]):
     pass
+
+
+user_attempt = UserAttemptRepo(UserAttempt)

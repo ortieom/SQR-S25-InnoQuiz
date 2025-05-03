@@ -1,7 +1,9 @@
-from .base import Base
+from datetime import datetime, timezone
+
 from sqlalchemy import Integer, DateTime, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from datetime import datetime, timezone
+
+from .base import Base
 
 
 class UserAnswer(Base):

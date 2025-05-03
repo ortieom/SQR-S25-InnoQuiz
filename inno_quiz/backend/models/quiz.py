@@ -1,9 +1,11 @@
-from .base import Base
+import uuid
+
 from sqlalchemy import String, Boolean, DateTime, ForeignKey
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from datetime import datetime, timezone
-import uuid
+
+from .base import Base
 
 
 class Quiz(Base):
