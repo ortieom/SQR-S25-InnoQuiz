@@ -14,14 +14,32 @@ pytest = "^8.3.5"
 pytest-cov = "^6.1.1"
 fastapi = {extras = ["standard"], version = "^0.115.12"}
 uvicorn = {extras = ["standard"], version = "^0.34.2"}
-bcrypt = "^4.3.0"
+bcrypt = "^4.0.1"
 sqlalchemy = "^2.0.40"
 alembic = "^1.15.2"
 streamlit = "^1.45.0"
 pydantic-settings = "^2.9.1"
 pydantic = "^2.11.4"
+python-jose = {extras = ["cryptography"], version = "^3.3.0"}
+passlib = {extras = ["bcrypt"], version = "^1.7.4"}
+requests = "^2.31.0"
 
+[tool.poetry.group.dev.dependencies]
+flake8 = "^7.0.0"
+types-python-jose = "^3.3.4"
+types-passlib = "^1.7.7"
+types-requests = "^2.31.0"
+autopep8 = "^2.3.2"
 
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = "test_*.py"
+python_functions = "test_*"
+python_classes = "Test*"
+markers = [
+    "external: marks tests that interact with external services"
+]

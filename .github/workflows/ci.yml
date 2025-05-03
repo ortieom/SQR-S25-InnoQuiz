@@ -1,0 +1,52 @@
+name: InnoQuiz CI
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+    
+    - name: Install Poetry
+      uses: snok/install-poetry@v1
+      with:
+        virtualenvs-create: true
+        virtualenvs-in-project: true
+    
+    - name: Install dependencies
+      run: |
+        cd inno_quiz
+        poetry install
+    
+    - name: Lint with flake8
+      run: |
+        cd inno_quiz/backend
+        poetry run flake8
+    
+    - name: Test with pytest
+      run: |
+        cd inno_quiz/backend
+        # Create a dummy .env file for tests
+        cp env.example .env
+        
+        # Run tests excluding external API tests
+        poetry run pytest -m "not external" --cov=. --cov-report=xml
+    
+    - name: Upload coverage report
+      uses: codecov/codecov-action@v4
+      with:
+        file: ./inno_quiz/coverage.xml
+        fail_ci_if_error: true
+        # The minimum coverage percentage should be 60% according to requirements
+        threshold: 60% 
