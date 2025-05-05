@@ -4,7 +4,7 @@ import pytest
 from unittest.mock import MagicMock, patch
 from uuid import UUID
 
-from backend.domain.quiz import QuizBase, QuizCreate, QuizRead
+from backend.domain.quiz import QuizBase, QuizCreate
 from backend.service import quiz as quiz_service
 from backend.service.errors import QuizNotFoundError
 from backend.models.quiz import Quiz
@@ -49,7 +49,7 @@ def test_create_quiz_template(mock_quiz_repo):
     assert (
         mock_quiz_repo.create.call_args[1]["obj_in"].author_username == author_username
     )
-    assert mock_quiz_repo.create.call_args[1]["obj_in"].is_submitted == False
+    assert not mock_quiz_repo.create.call_args[1]["obj_in"].is_submitted
     assert result == mock_quiz
 
 

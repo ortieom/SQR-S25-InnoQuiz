@@ -54,14 +54,14 @@ def test_submit_quiz(client: TestClient, db_session):
     data = response.json()
     assert data["name"] == quiz_data["name"]
     assert data["category"] == quiz_data["category"]
-    assert data["is_submitted"] == True  # Should be updated to True
+    assert data["is_submitted"]  # Should be updated to True
     assert data["id"] == quiz_id_str
 
     # Verify the quiz is updated in the database
     quiz_id = uuid.UUID(quiz_id_str)
     db_quiz = db_session.query(Quiz).filter(Quiz.id == quiz_id).first()
     assert db_quiz is not None
-    assert db_quiz.is_submitted == True
+    assert db_quiz.is_submitted
 
 
 def test_submit_nonexistent_quiz(client: TestClient, db_session):
