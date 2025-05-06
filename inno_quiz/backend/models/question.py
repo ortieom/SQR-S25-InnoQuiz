@@ -16,3 +16,4 @@ class Question(Base):
 
     quiz = relationship("Quiz", back_populates="questions")
     answer_options = relationship("AnswerOption", back_populates="question")
+    user_answers = relationship("UserAnswer", back_populates="question")

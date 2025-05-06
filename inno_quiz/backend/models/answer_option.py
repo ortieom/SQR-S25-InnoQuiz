@@ -15,4 +15,3 @@ class AnswerOption(Base):
     is_correct: Mapped[bool] = mapped_column(Boolean, default=False)
 
     question = relationship("Question", back_populates="answer_options")
-    user_answers = relationship("UserAnswer", back_populates="answer_option")

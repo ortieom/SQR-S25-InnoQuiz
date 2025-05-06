@@ -1,6 +1,6 @@
 from datetime import datetime, timezone
 
-from sqlalchemy import Integer, String, DateTime, ForeignKey
+from sqlalchemy import Integer, String, DateTime, ForeignKey, Float
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -20,6 +20,8 @@ class UserAttempt(Base):
     started_at: Mapped[datetime] = mapped_column(
         DateTime, default=datetime.now(timezone.utc)
     )
+    score: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    completion_time: Mapped[float] = mapped_column(Float, nullable=True)
 
     user = relationship("User", back_populates="attempts")
     quiz = relationship("Quiz", back_populates="attempts")
