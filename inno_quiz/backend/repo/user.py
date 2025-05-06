@@ -8,7 +8,11 @@ from backend.domain.user import UserCreate, UserRead
 
 
 class UserRepo(CRUDBase[User, UserCreate, UserRead]):
-    pass
+    def get_by_username(self, db: Session, username: str) -> Optional[User]:
+        """
+        Get a user by username.
+        """
+        return get_user_by_username(db, username)
 
 
 user = UserRepo(User)
