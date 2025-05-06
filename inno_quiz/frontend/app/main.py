@@ -1,7 +1,12 @@
 import streamlit as st
 from pathlib import Path
-import requests
 import time
+from frontend.app.utils.api import get_user_quizzes
+from frontend.app.views.login import show_login_page
+from frontend.app.views.create_quiz import show_create_quiz_page
+from frontend.app.views.add_questions import show_add_questions_page
+from frontend.app.views.quiz_info import show_quiz_info_page
+from frontend.app.views.play_quiz import show_play_quiz_page
 
 # Set page config
 st.set_page_config(
@@ -53,17 +58,6 @@ if 'my_quizzes' not in st.session_state:
 if 'last_fetch' not in st.session_state:
     st.session_state.last_fetch = 0
 
-# Cache user quizzes fetch
-@st.cache_data(ttl=60)  # Cache for 1 minute
-def fetch_user_quizzes(user_id):
-    try:
-        response = requests.get(f"http://localhost:8000/users/{user_id}/quizzes")
-        if response.status_code == 200:
-            return response.json()
-        return []
-    except:
-        return []
-
 # Navigation
 st.sidebar.title("InnoQuiz")
 
@@ -74,8 +68,11 @@ if st.session_state.user:
     # Fetch user's quizzes with caching
     current_time = time.time()
     if current_time - st.session_state.last_fetch > 60:  # Refresh every minute
-        st.session_state.my_quizzes = fetch_user_quizzes(st.session_state.user['id'])
-        st.session_state.last_fetch = current_time
+        # Use our new API utility instead of direct requests
+        quizzes = get_user_quizzes(st.session_state.user['username'])
+        if quizzes:
+            st.session_state.my_quizzes = quizzes
+            st.session_state.last_fetch = current_time
     
     # Show user's quizzes
     if st.session_state.my_quizzes:
@@ -150,26 +147,21 @@ for page_name in pages:
 # Show current page
 page = page_mapping.get(current_page, "Login")
 
-# Import and show pages with loading indicator
+# Display the appropriate page based on the current_page value
 with st.spinner("Loading..."):
     if page == "Login" and not st.session_state.user:
-        from views.login import show_login_page
         show_login_page()
     elif page == "Create Quiz" and st.session_state.user:
-        from views.create_quiz import show_create_quiz_page
         show_create_quiz_page()
     elif page == "Add Questions" and st.session_state.user:
         if not st.session_state.quiz_id:
             st.warning("Please select a quiz first")
         else:
-            from views.add_questions import show_add_questions_page
             show_add_questions_page()
     elif page == "Quiz Info":
-        from views.quiz_info import show_quiz_info_page
         show_quiz_info_page()
     elif page == "Play Quiz":
         if not st.session_state.user:
             st.warning("Please login first")
         else:
-            from views.play_quiz import show_play_quiz_page
             show_play_quiz_page()

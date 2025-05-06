@@ -1,5 +1,5 @@
 import streamlit as st
-import requests
+from frontend.app.utils.api import get_quiz_info, get_quiz_questions, submit_quiz_answers
 
 def show_play_quiz_page():
     st.title("Play Quiz")
@@ -26,34 +26,30 @@ def show_play_quiz_page():
         start_button = st.button("Start Quiz")
         
         if start_button and quiz_id:
-            try:
-                # Get quiz information and questions
-                quiz_response = requests.get(f"http://localhost:8000/quizzes/{quiz_id}")
-                questions_response = requests.get(f"http://localhost:8000/quizzes/{quiz_id}/questions")
+            # Use our API utility to get quiz info and questions
+            quiz = get_quiz_info(quiz_id)
+            questions_data = get_quiz_questions(quiz_id)
+            
+            if quiz and questions_data and "questions" in questions_data:
+                questions = questions_data["questions"]
                 
-                if quiz_response.status_code == 200 and questions_response.status_code == 200:
-                    quiz = quiz_response.json()
-                    questions = questions_response.json()
-                    
-                    if not questions:
-                        st.warning("This quiz has no questions yet")
-                        return
-                    
-                    # Initialize quiz state
-                    st.session_state.quiz_state = {
-                        'quiz_id': quiz_id,
-                        'questions': questions,
-                        'current_question_index': 0,
-                        'score': 0,
-                        'answers': [],
-                        'correct_answers': 0,
-                        'wrong_answers': 0
-                    }
-                    st.rerun()
-                else:
-                    st.error("Quiz not found or has no questions")
-            except requests.exceptions.RequestException:
-                st.error("Could not connect to the server")
+                if not questions:
+                    st.warning("This quiz has no questions yet")
+                    return
+                
+                # Initialize quiz state
+                st.session_state.quiz_state = {
+                    'quiz_id': quiz_id,
+                    'questions': questions,
+                    'current_question_index': 0,
+                    'score': 0,
+                    'answers': [],
+                    'correct_answers': 0,
+                    'wrong_answers': 0
+                }
+                st.rerun()
+            else:
+                st.error("Quiz not found or has no questions")
     else:
         # Show quiz progress
         questions = st.session_state.quiz_state['questions']
@@ -69,16 +65,26 @@ def show_play_quiz_page():
         st.write(current_question["question_text"])
         
         # Show options
-        selected_answer = st.radio(
+        options = current_question.get("options", [])
+        selected_option = st.radio(
             "Select your answer:",
-            current_question["options"],
+            options,
             key=f"question_{current_index}"
         )
         
+        # Store user's selection
+        if "user_answers" not in st.session_state.quiz_state:
+            st.session_state.quiz_state["user_answers"] = {}
+        
         # Submit answer button
         if st.button("Submit Answer"):
+            # Store this answer
+            question_id = current_question.get("id", f"q{current_index}")
+            st.session_state.quiz_state["user_answers"][question_id] = selected_option
+            
             # Check if answer is correct
-            if selected_answer == current_question["correct_answer"]:
+            correct_options = current_question.get("correct_options", [])
+            if selected_option in correct_options:
                 st.session_state.quiz_state['correct_answers'] += 1
             else:
                 st.session_state.quiz_state['wrong_answers'] += 1
@@ -94,47 +100,43 @@ def show_play_quiz_page():
                 wrong = st.session_state.quiz_state['wrong_answers']
                 score = (correct / total_questions) * 100
                 
-                # Submit final score
-                try:
-                    score_response = requests.post(
-                        f"http://localhost:8000/quizzes/{st.session_state.quiz_state['quiz_id']}/submit",
-                        json={
-                            "user_id": st.session_state.user["id"],
-                            "score": score
-                        }
-                    )
-                    if score_response.status_code == 200:
-                        # Show detailed results
-                        st.success("Quiz completed!")
-                        st.subheader("Your Results:")
-                        col1, col2, col3 = st.columns(3)
-                        with col1:
-                            st.metric("Total Questions", total_questions)
-                        with col2:
-                            st.metric("Correct Answers", correct)
-                        with col3:
-                            st.metric("Wrong Answers", wrong)
-                        
-                        st.subheader(f"Final Score: {score:.1f}%")
-                        
-                        # Show leaderboard
-                        try:
-                            leaderboard_response = requests.get(
-                                f"http://localhost:8000/quizzes/{st.session_state.quiz_state['quiz_id']}/leaderboard"
-                            )
-                            if leaderboard_response.status_code == 200:
-                                leaderboard = leaderboard_response.json()
-                                if leaderboard:
-                                    st.subheader("Leaderboard")
-                                    for i, entry in enumerate(leaderboard[:5], 1):
-                                        st.write(f"{i}. {entry['username']} - {entry['score']}%")
-                        except:
-                            st.info("Could not load leaderboard")
-                    else:
-                        st.error("Could not submit score")
-                except:
-                    st.error("Could not connect to the server")
+                # Prepare submission data
+                submission_data = {
+                    "user_id": st.session_state.user["username"],
+                    "score": score,
+                    "answers": st.session_state.quiz_state["user_answers"]
+                }
                 
+                # Submit final score using our API utility
+                result = submit_quiz_answers(
+                    st.session_state.quiz_state['quiz_id'],
+                    submission_data
+                )
+                
+                if result:
+                    # Show detailed results
+                    st.success("Quiz completed!")
+                    st.subheader("Your Results:")
+                    col1, col2, col3 = st.columns(3)
+                    with col1:
+                        st.metric("Total Questions", total_questions)
+                    with col2:
+                        st.metric("Correct Answers", correct)
+                    with col3:
+                        st.metric("Wrong Answers", wrong)
+                    
+                    st.subheader(f"Final Score: {score:.1f}%")
+                    
+                    # Show leaderboard if available in quiz info
+                    quiz = get_quiz_info(st.session_state.quiz_state['quiz_id'])
+                    if quiz and "leaderboard" in quiz:
+                        leaderboard = quiz["leaderboard"]
+                        if leaderboard:
+                            st.subheader("Leaderboard")
+                            for i, entry in enumerate(leaderboard[:5], 1):
+                                st.write(f"{i}. {entry.get('username', 'User')} - {entry.get('score', 0)}%")
+                else:
+                    st.error("Could not submit score")
         
         # Add a button to restart the quiz
         if st.button("Restart Quiz"):
@@ -145,6 +147,7 @@ def show_play_quiz_page():
                 'score': 0,
                 'answers': [],
                 'correct_answers': 0,
-                'wrong_answers': 0
+                'wrong_answers': 0,
+                'user_answers': {}
             }
             st.rerun() 
