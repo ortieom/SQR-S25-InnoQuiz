@@ -80,25 +80,25 @@ if st.session_state.user:
         for quiz in st.session_state.my_quizzes:
             col1, col2, col3 = st.sidebar.columns([2, 1, 1])
             with col1:
-                st.write(f"📝 {quiz['title']}")
+                st.write(f"📝 {quiz['name']}")
             with col2:
                 if st.button("Select", key=f"select_quiz_{quiz['id']}"):
-                    st.session_state.quiz_id = quiz['id']
+                    st.session_state.quiz_id = str(quiz['id'])
                     st.query_params["page"] = "add_questions"
                     st.rerun()
             with col3:
                 if st.button("ID", key=f"copy_id_{quiz['id']}"):
-                    st.sidebar.code(quiz['id'], language="text")
+                    st.sidebar.code(str(quiz['id']), language="text")
     
     # Show current quiz info
     if st.session_state.quiz_id:
         current_quiz = next(
-            (q for q in st.session_state.my_quizzes if q['id'] == st.session_state.quiz_id),
+            (q for q in st.session_state.my_quizzes if str(q['id']) == str(st.session_state.quiz_id)),
             None
         )
         if current_quiz:
             st.sidebar.markdown("### Current Quiz")
-            st.sidebar.info(f"Working on: {current_quiz['title']}")
+            st.sidebar.info(f"Working on: {current_quiz['name']}")
     
     if st.sidebar.button("Logout", key="logout_button"):
         st.session_state.user = None
