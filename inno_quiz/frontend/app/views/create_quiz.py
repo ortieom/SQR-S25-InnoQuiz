@@ -54,6 +54,7 @@ def show_create_quiz_page():
             quiz_id = str(quiz_data.get("id"))
             st.session_state.quiz_id = quiz_id
             st.success(f"Quiz created successfully!")
+            st.code(f"Quiz ID: {quiz_id}", language="text")
             st.info("Now you can add questions to your quiz")
     
     # Add Questions button outside the form

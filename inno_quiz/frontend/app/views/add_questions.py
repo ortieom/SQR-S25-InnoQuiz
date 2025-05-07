@@ -13,6 +13,9 @@ def show_add_questions_page():
         st.warning("Please create a quiz first")
         return
     
+    # Display quiz ID
+    st.code(f"Quiz ID: {st.session_state.quiz_id}", language="text")
+    
     # Get quiz info using our API utility
     quiz = get_quiz_info(st.session_state.quiz_id)
     if not quiz:
