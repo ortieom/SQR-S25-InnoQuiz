@@ -18,7 +18,7 @@ def show_add_questions_page():
     if not quiz:
         return
         
-    st.subheader(f"Adding questions to: {quiz['title']}")
+    st.subheader(f"Adding questions to: {quiz['name']}")
     st.write(f"Category: {quiz.get('category', 'N/A')}")
     
     # Manual question addition

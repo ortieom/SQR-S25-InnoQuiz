@@ -1,5 +1,5 @@
 from datetime import timedelta
-from typing import Annotated
+from typing import Annotated, List
 
 from fastapi import APIRouter, Depends, HTTPException, status, Response
 from fastapi.security import OAuth2PasswordRequestForm
@@ -10,9 +10,11 @@ from backend.config import settings
 from backend.db import get_db
 from backend.domain.auth import Token
 from backend.domain.user import UserCreate, UserRead, UserInfo
+from backend.domain.quiz import QuizRead
 from backend.models.user import User
 from backend.repo.user import create_user, get_user_by_username, verify_username_unique
 from backend.deps import get_current_user_from_cookie
+from backend import repo
 
 router = APIRouter(prefix="/users", tags=["users"])
 
@@ -90,3 +92,26 @@ def get_user_me(current_user: User = Depends(get_current_user_from_cookie)):
         "is_authenticated": True,
         "session_expires_in_minutes": settings.ACCESS_TOKEN_EXPIRE_MINUTES
     }
+
+
+@router.get("/{username}/quizzes", response_model=List[QuizRead])
+def get_user_quizzes(
+    username: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user_from_cookie)
+):
+    """
+    Get all quizzes created by a specific user.
+    This endpoint requires authentication.
+    """
+    # Verify user exists
+    user = get_user_by_username(db, username)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found"
+        )
+
+    # Get user's quizzes
+    quizzes = repo.quiz.get_by_author(db, username)
+    return quizzes

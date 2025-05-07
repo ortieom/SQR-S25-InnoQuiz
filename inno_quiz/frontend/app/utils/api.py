@@ -126,15 +126,22 @@ def get_user_quizzes(username: str) -> Optional[List[Dict[str, Any]]]:
     headers = get_auth_headers()
     cookies = get_auth_cookies()
     
-    return execute_request('GET', f"{BASE_URL}/users/{username}/quizzes", headers=headers, cookies=cookies)
+    return execute_request('GET', f"{BASE_URL}/v1/users/{username}/quizzes", headers=headers, cookies=cookies)
 
 def create_quiz(title: str, category: str) -> Optional[Dict[str, Any]]:
     """Create a new quiz"""
     headers = get_auth_headers()
     cookies = get_auth_cookies()
     
-    return execute_request('POST', f"{BASE_URL}/quiz/", 
-                           json={"title": title, "category": category}, 
+    # Convert category to integer if it's a string
+    try:
+        category_id = int(category)
+    except ValueError:
+        # Default to general knowledge if category is not a valid number
+        category_id = 9
+    
+    return execute_request('POST', f"{BASE_URL}/v1/quiz/", 
+                           json={"name": title, "category": category_id, "is_submitted": False}, 
                            headers=headers, cookies=cookies)
 
 def get_quiz_info(quiz_id: str) -> Optional[Dict[str, Any]]:
@@ -142,14 +149,14 @@ def get_quiz_info(quiz_id: str) -> Optional[Dict[str, Any]]:
     headers = get_auth_headers()
     cookies = get_auth_cookies()
     
-    return execute_request('GET', f"{BASE_URL}/quiz/{quiz_id}", headers=headers, cookies=cookies)
+    return execute_request('GET', f"{BASE_URL}/v1/quiz/{quiz_id}", headers=headers, cookies=cookies)
 
 def add_question(quiz_id: str, question_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
     """Add a question to a quiz"""
     headers = get_auth_headers()
     cookies = get_auth_cookies()
     
-    return execute_request('POST', f"{BASE_URL}/quiz/{quiz_id}/questions", 
+    return execute_request('POST', f"{BASE_URL}/v1/quiz/{quiz_id}/questions", 
                            json=question_data, headers=headers, cookies=cookies)
 
 def load_external_questions(quiz_id: str, count: int, category: str) -> Optional[Dict[str, Any]]:
@@ -157,7 +164,7 @@ def load_external_questions(quiz_id: str, count: int, category: str) -> Optional
     headers = get_auth_headers()
     cookies = get_auth_cookies()
     
-    return execute_request('GET', f"{BASE_URL}/quiz/{quiz_id}/load_questions?count={count}&category={category}", 
+    return execute_request('GET', f"{BASE_URL}/v1/quiz/{quiz_id}/load_questions?count={count}&category={category}", 
                            headers=headers, cookies=cookies)
 
 def get_quiz_questions(quiz_id: str) -> Optional[Dict[str, Any]]:
@@ -165,7 +172,7 @@ def get_quiz_questions(quiz_id: str) -> Optional[Dict[str, Any]]:
     headers = get_auth_headers()
     cookies = get_auth_cookies()
     
-    return execute_request('GET', f"{BASE_URL}/quiz/{quiz_id}/questions", 
+    return execute_request('GET', f"{BASE_URL}/v1/quiz/{quiz_id}/questions", 
                            headers=headers, cookies=cookies)
 
 def submit_quiz_answers(quiz_id: str, answers: Dict[str, Any]) -> Optional[Dict[str, Any]]:
@@ -176,5 +183,15 @@ def submit_quiz_answers(quiz_id: str, answers: Dict[str, Any]) -> Optional[Dict[
     # Make sure quiz_id is in the answers
     answers["quiz_id"] = quiz_id
     
-    return execute_request('POST', f"{BASE_URL}/quiz/{quiz_id}/answers", 
+    return execute_request('POST', f"{BASE_URL}/v1/quiz/{quiz_id}/answers", 
                            json=answers, headers=headers, cookies=cookies)
+
+def register_user(username: str, password: str) -> Optional[Dict[str, Any]]:
+    """Register a new user"""
+    return execute_request('POST', f"{BASE_URL}/v1/users/create", 
+                         json={"username": username, "password": password})
+
+def login_user(username: str, password: str) -> Optional[Dict[str, Any]]:
+    """Login a user"""
+    return execute_request('POST', f"{BASE_URL}/v1/users/login",
+                         data={"username": username, "password": password})

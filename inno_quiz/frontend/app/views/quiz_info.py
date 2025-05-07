@@ -12,7 +12,7 @@ def show_quiz_info_page():
         quiz = get_quiz_info(quiz_id)
         
         if quiz:
-            st.subheader(quiz["title"])
+            st.subheader(quiz["name"])
             st.write(f"Category: {quiz.get('category', 'N/A')}")
             
             # Show quiz details
