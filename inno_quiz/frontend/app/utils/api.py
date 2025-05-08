@@ -258,6 +258,21 @@ def submit_quiz_answers(quiz_id: str, answers: Dict[str, Any]) -> Optional[Dict[
                            json=answers, headers=headers, cookies=cookies)
 
 
+def get_quiz_leaderboard(quiz_id: str) -> Optional[Dict[str, Any]]:
+    """Get the leaderboard for a specific quiz"""
+    headers = get_auth_headers()
+    cookies = get_auth_cookies()
+
+    # Ensure proper UUID format
+    formatted_quiz_id = ensure_uuid_format(quiz_id)
+
+    return execute_request(
+        'GET',
+        f"{BASE_URL}/v1/quiz/{formatted_quiz_id}/leaderboard",
+        headers=headers,
+        cookies=cookies)
+
+
 def register_user(username: str, password: str) -> Optional[Dict[str, Any]]:
     """Register a new user"""
     return execute_request('POST', f"{BASE_URL}/v1/users/create",
