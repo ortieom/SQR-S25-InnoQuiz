@@ -1,14 +1,14 @@
 from uuid import UUID
 from typing import List
 
-from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import Session
 
 from backend.domain.question import QuestionCreate, QuestionRead
 from backend import repo
 from . import errors
 
 
-def create_question(question_data: QuestionCreate, *, db: AsyncSession) -> QuestionRead:
+def create_question(question_data: QuestionCreate, *, db: Session) -> QuestionRead:
     """
     Create a new question for a quiz
     """
@@ -20,7 +20,7 @@ def create_question(question_data: QuestionCreate, *, db: AsyncSession) -> Quest
     return repo.question.create(db, obj_in=question_data)
 
 
-def get_quiz_questions(quiz_id: UUID, *, db: AsyncSession) -> List[QuestionRead]:
+def get_quiz_questions(quiz_id: UUID, *, db: Session) -> List[QuestionRead]:
     """
     Get all questions for a specific quiz
     """

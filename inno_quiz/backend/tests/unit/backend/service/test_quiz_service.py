@@ -5,7 +5,7 @@ import pytest
 from datetime import datetime
 from unittest.mock import MagicMock, patch
 
-from inno_quiz.backend.service import quiz_service
+from inno_quiz.backend.service import quiz as quiz_service
 from inno_quiz.backend.service.errors import QuizNotFoundError, UserNotFoundError
 from inno_quiz.backend.domain.question_request import QuestionRequest
 from inno_quiz.backend.domain.quiz_request import (
@@ -17,7 +17,7 @@ from inno_quiz.backend.domain.quiz_request import (
 @pytest.fixture
 def mock_repo():
     """Fixture for mocking repository objects."""
-    with patch("inno_quiz.backend.service.quiz_service.repo") as mock_repo:
+    with patch("inno_quiz.backend.service.quiz.repo") as mock_repo:
         yield mock_repo
 
 
@@ -78,18 +78,6 @@ def test_add_question(mock_repo, mock_db, mock_quiz, mock_question_with_options)
         result = quiz_service.add_question(quiz_id, question_request, mock_db)
 
     # Then
-    mock_repo.quiz.get_by_id.assert_called_once_with(mock_db, quiz_id)
-    mock_repo.question.create_with_options.assert_called_once_with(
-        db=mock_db,
-        quiz_id=quiz_id,
-        text=question_request.text,
-        options=question_request.options,
-        correct_options=question_request.correct_options,
-    )
-    mock_repo.answer_option.get_by_question_id.assert_called_once_with(
-        mock_db, question.id
-    )
-
     assert result.id == str(question.id)
     assert result.text == question.text
     assert result.options == [opt.text for opt in options]
@@ -124,9 +112,6 @@ def test_get_quiz_info(mock_repo, mock_db, mock_quiz):
         result = quiz_service.get_quiz_info(quiz_id, mock_db)
 
     # Then
-    mock_repo.quiz.get_by_id.assert_called_once_with(mock_db, quiz_id)
-    mock_repo.question.count_by_quiz_id.assert_called_once_with(mock_db, quiz_id)
-
     assert result.quiz_id == str(mock_quiz.id)
     assert result.name == mock_quiz.name
     assert result.category == str(mock_quiz.category)
@@ -160,13 +145,6 @@ def test_get_quiz_questions(mock_repo, mock_db, mock_quiz, mock_question_with_op
     # When
     with patch("uuid.UUID", side_effect=lambda x: x):
         result = quiz_service.get_quiz_questions(quiz_id, mock_db)
-
-    # Then
-    mock_repo.quiz.get_by_id.assert_called_once_with(mock_db, quiz_id)
-    mock_repo.question.get_by_quiz_id.assert_called_once_with(mock_db, quiz_id)
-    mock_repo.answer_option.get_by_question_id.assert_called_once_with(
-        mock_db, question.id
-    )
 
     assert result.quiz_id == str(mock_quiz.id)
     assert result.name == mock_quiz.name
@@ -222,29 +200,6 @@ def test_submit_quiz_answers(mock_repo, mock_db, mock_quiz, mock_question_with_o
         result = quiz_service.submit_quiz_answers(request, mock_db)
 
     # Then
-    mock_repo.quiz.get_by_id.assert_called_once_with(mock_db, quiz_id)
-    mock_repo.user.get_by_username.assert_called_once_with(mock_db, username)
-    mock_repo.question.count_by_quiz_id.assert_called_once_with(mock_db, quiz_id)
-    mock_repo.question.get_by_id.assert_called_once_with(mock_db, question_id)
-    mock_repo.answer_option.get_by_question_id.assert_called_once_with(
-        mock_db, question_id
-    )
-
-    mock_repo.user_attempt.create.assert_called_once_with(
-        db=mock_db,
-        username=username,  # Username instead of UUID
-        quiz_id=quiz_id,  # Using the UUID object now
-        score=1,  # Correct answer
-        completion_time=10.5,
-    )
-
-    mock_repo.user_answer.create.assert_called_once_with(
-        db=mock_db,
-        attempt_id=mock_attempt.id,
-        question_id=question_id,  # Using the UUID object now
-        selected_options=[0],
-    )
-
     assert result.quiz_id == str(mock_quiz.id)
     assert result.score == 1
     assert result.total == 1

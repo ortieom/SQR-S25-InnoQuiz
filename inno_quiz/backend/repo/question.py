@@ -2,7 +2,6 @@ from uuid import UUID
 from typing import List
 
 from sqlalchemy import select, func
-from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
 
 from .default import CRUDBase
@@ -12,14 +11,12 @@ from backend.domain.question import QuestionCreate, QuestionRead
 
 
 class QuestionRepo(CRUDBase[Question, QuestionCreate, QuestionRead]):
-    async def get_multi_by_quiz_id(
-        self, db: AsyncSession, *, quiz_id: UUID
-    ) -> List[QuestionRead]:
+    def get_multi_by_quiz_id(self, db: Session, *, quiz_id: UUID) -> List[QuestionRead]:
         """
         Get all questions for a specific quiz
         """
         query = select(Question).where(Question.quiz_id == quiz_id)
-        result = await db.execute(query)
+        result = db.execute(query)
         questions = result.scalars().all()
         return [QuestionRead.model_validate(q) for q in questions]
 
