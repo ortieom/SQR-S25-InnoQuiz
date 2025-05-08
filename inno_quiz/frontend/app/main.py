@@ -64,7 +64,7 @@ st.sidebar.title("InnoQuiz")
 # Show login status and user's quizzes
 if st.session_state.user:
     st.sidebar.success(f"Logged in as: {st.session_state.user['username']}")
-    
+
     # Fetch user's quizzes with caching
     current_time = time.time()
     if current_time - st.session_state.last_fetch > 60:  # Refresh every minute
@@ -73,7 +73,7 @@ if st.session_state.user:
         if quizzes:
             st.session_state.my_quizzes = quizzes
             st.session_state.last_fetch = current_time
-    
+
     # Show user's quizzes
     if st.session_state.my_quizzes:
         st.sidebar.markdown("### Your Quizzes")
@@ -89,17 +89,17 @@ if st.session_state.user:
             with col3:
                 if st.button("ID", key=f"copy_id_{quiz['id']}"):
                     st.sidebar.code(str(quiz['id']), language="text")
-    
+
     # Show current quiz info
     if st.session_state.quiz_id:
         current_quiz = next(
-            (q for q in st.session_state.my_quizzes if str(q['id']) == str(st.session_state.quiz_id)),
-            None
-        )
+            (q for q in st.session_state.my_quizzes if str(
+                q['id']) == str(
+                st.session_state.quiz_id)), None)
         if current_quiz:
             st.sidebar.markdown("### Current Quiz")
             st.sidebar.info(f"Working on: {current_quiz['name']}")
-    
+
     if st.sidebar.button("Logout", key="logout_button"):
         st.session_state.user = None
         st.session_state.quiz_id = None
@@ -139,7 +139,7 @@ for page_name in pages:
         if page_name == "Add Questions" and not st.session_state.quiz_id:
             st.sidebar.warning("Please select a quiz first")
             continue
-            
+
         st.query_params.clear()
         st.query_params["page"] = reverse_page_mapping[page_name]
         st.rerun()

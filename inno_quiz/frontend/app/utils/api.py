@@ -12,6 +12,7 @@ BASE_URL = "http://localhost:8000"
 MAX_RETRIES = 2
 RETRY_DELAY = 2  # seconds
 
+
 def is_backend_available():
     """Check if the backend server is running"""
     try:
@@ -21,8 +22,9 @@ def is_backend_available():
         result = sock.connect_ex(('localhost', 8000))
         sock.close()
         return result == 0
-    except:
+    except BaseException:
         return False
+
 
 def handle_response(response):
     """Handle common API response scenarios"""
@@ -33,7 +35,7 @@ def handle_response(response):
         st.error("Session expired. Please login again.")
         # Return None to indicate authentication failure
         return None
-        
+
     # For other error codes
     if response.status_code >= 400:
         try:
@@ -43,7 +45,7 @@ def handle_response(response):
         except ValueError:
             st.error(f"Error: HTTP {response.status_code}")
         return None
-        
+
     # Return JSON data for successful responses
     try:
         return response.json()
@@ -51,31 +53,34 @@ def handle_response(response):
         st.error("Invalid response from server")
         return None
 
+
 def get_auth_headers() -> Dict[str, str]:
     """Get authentication headers if user is logged in"""
     headers = {"Content-Type": "application/json"}
-    
+
     if st.session_state.user and "token" in st.session_state.user:
         token = st.session_state.user["token"]
         headers["Authorization"] = f"Bearer {token}"
-        
+
     return headers
+
 
 def get_auth_cookies() -> Dict[str, str]:
     """Get authentication cookies if user is logged in"""
     cookies = {}
-    
+
     if st.session_state.user and "token" in st.session_state.user:
         token = st.session_state.user["token"]
         cookies["access_token"] = f"Bearer {token}"
-        
+
     return cookies
+
 
 def execute_request(method, url, **kwargs):
     """Execute a request with retry logic for connection errors"""
     headers = kwargs.pop('headers', {})
     cookies = kwargs.pop('cookies', {})
-    
+
     # Check if backend is available before making requests
     if not is_backend_available():
         st.error("Backend server is not running. Please start the backend server and try again.")
@@ -86,7 +91,7 @@ cd inno_quiz
 SECRET_KEY=your_secret_key_here poetry run uvicorn backend.main:app --reload
             """)
         return None
-    
+
     # Retry logic for connection errors
     for attempt in range(MAX_RETRIES + 1):
         try:
@@ -101,12 +106,14 @@ SECRET_KEY=your_secret_key_here poetry run uvicorn backend.main:app --reload
             else:
                 st.error(f"Unsupported HTTP method: {method}")
                 return None
-                
+
             return handle_response(response)
         except requests.exceptions.ConnectionError as e:
             if attempt < MAX_RETRIES:
                 # Show retry message
-                st.warning(f"Connection failed. Retrying in {RETRY_DELAY} seconds... ({attempt+1}/{MAX_RETRIES})")
+                st.warning(
+                    f"Connection failed. Retrying in {RETRY_DELAY} seconds... ({
+                        attempt + 1}/{MAX_RETRIES})")
                 time.sleep(RETRY_DELAY)
             else:
                 # Final attempt failed
@@ -122,76 +129,94 @@ SECRET_KEY=your_secret_key_here poetry run uvicorn backend.main:app --reload
             st.error(f"Connection error: {str(e)}")
             return None
 
+
 def get_user_quizzes(username: str) -> Optional[List[Dict[str, Any]]]:
     """Get quizzes for a specific user"""
     headers = get_auth_headers()
     cookies = get_auth_cookies()
-    
-    return execute_request('GET', f"{BASE_URL}/v1/users/{username}/quizzes", headers=headers, cookies=cookies)
+
+    return execute_request(
+        'GET',
+        f"{BASE_URL}/v1/users/{username}/quizzes",
+        headers=headers,
+        cookies=cookies)
+
 
 def create_quiz(title: str, category: str) -> Optional[Dict[str, Any]]:
     """Create a new quiz"""
     headers = get_auth_headers()
     cookies = get_auth_cookies()
-    
+
     # Convert category to integer if it's a string
     try:
         category_id = int(category)
     except ValueError:
         # Default to general knowledge if category is not a valid number
         category_id = 9
-    
-    return execute_request('POST', f"{BASE_URL}/v1/quiz/", 
-                           json={"name": title, "category": category_id, "is_submitted": False}, 
+
+    return execute_request('POST', f"{BASE_URL}/v1/quiz/",
+                           json={"name": title, "category": category_id, "is_submitted": False},
                            headers=headers, cookies=cookies)
+
 
 def get_quiz_info(quiz_id: str) -> Optional[Dict[str, Any]]:
     """Get information about a specific quiz"""
     headers = get_auth_headers()
     cookies = get_auth_cookies()
-    
+
     # Ensure proper UUID format
     formatted_quiz_id = ensure_uuid_format(quiz_id)
-    
-    return execute_request('GET', f"{BASE_URL}/v1/quiz/{formatted_quiz_id}", headers=headers, cookies=cookies)
+
+    return execute_request(
+        'GET',
+        f"{BASE_URL}/v1/quiz/{formatted_quiz_id}",
+        headers=headers,
+        cookies=cookies)
+
 
 def add_question(quiz_id: str, question_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
     """Add a question to a quiz"""
     headers = get_auth_headers()
     cookies = get_auth_cookies()
-    
+
     # Ensure proper UUID format
     formatted_quiz_id = ensure_uuid_format(quiz_id)
-    
+
     # Ensure question data matches the expected backend format
     # Backend expects: text, options, correct_options (as indexes)
     if "question_text" in question_data and "text" not in question_data:
         question_data["text"] = question_data.pop("question_text")
-    
-    return execute_request('POST', f"{BASE_URL}/v1/quiz/{formatted_quiz_id}/questions", 
+
+    return execute_request('POST', f"{BASE_URL}/v1/quiz/{formatted_quiz_id}/questions",
                            json=question_data, headers=headers, cookies=cookies)
+
 
 def load_external_questions(quiz_id: str, count: int, category: str) -> Optional[Dict[str, Any]]:
     """Load questions from external API"""
     headers = get_auth_headers()
     cookies = get_auth_cookies()
-    
+
     # Ensure proper UUID format
     formatted_quiz_id = ensure_uuid_format(quiz_id)
-    
-    return execute_request('GET', f"{BASE_URL}/v1/quiz/{formatted_quiz_id}/load_questions?count={count}&category={category}", 
-                           headers=headers, cookies=cookies)
+
+    return execute_request(
+        'GET',
+        f"{BASE_URL}/v1/quiz/{formatted_quiz_id}/load_questions?count={count}&category={category}",
+        headers=headers,
+        cookies=cookies)
+
 
 def get_quiz_questions(quiz_id: str) -> Optional[Dict[str, Any]]:
     """Get all questions for a quiz"""
     headers = get_auth_headers()
     cookies = get_auth_cookies()
-    
+
     # Ensure proper UUID format
     formatted_quiz_id = ensure_uuid_format(quiz_id)
-    
-    return execute_request('GET', f"{BASE_URL}/v1/quiz/{formatted_quiz_id}/questions", 
+
+    return execute_request('GET', f"{BASE_URL}/v1/quiz/{formatted_quiz_id}/questions",
                            headers=headers, cookies=cookies)
+
 
 def ensure_uuid_format(id_value: str) -> str:
     """
@@ -205,37 +230,41 @@ def ensure_uuid_format(id_value: str) -> str:
         # If not a valid UUID, return as is and let the backend handle the error
         return str(id_value)
 
+
 def submit_quiz(quiz_id: str) -> Optional[Dict[str, Any]]:
     """Submit a quiz as ready for participants"""
     headers = get_auth_headers()
     cookies = get_auth_cookies()
-    
+
     # Ensure proper UUID format
     formatted_quiz_id = ensure_uuid_format(quiz_id)
-    
-    return execute_request('PUT', f"{BASE_URL}/v1/quiz/{formatted_quiz_id}/submit", 
-                          headers=headers, cookies=cookies)
+
+    return execute_request('PUT', f"{BASE_URL}/v1/quiz/{formatted_quiz_id}/submit",
+                           headers=headers, cookies=cookies)
+
 
 def submit_quiz_answers(quiz_id: str, answers: Dict[str, Any]) -> Optional[Dict[str, Any]]:
     """Submit answers for a quiz"""
     headers = get_auth_headers()
     cookies = get_auth_cookies()
-    
+
     # Ensure proper UUID format
     formatted_quiz_id = ensure_uuid_format(quiz_id)
-    
+
     # Make sure quiz_id is in the answers with proper format
     answers["quiz_id"] = formatted_quiz_id
-    
-    return execute_request('POST', f"{BASE_URL}/v1/quiz/{formatted_quiz_id}/answers", 
+
+    return execute_request('POST', f"{BASE_URL}/v1/quiz/{formatted_quiz_id}/answers",
                            json=answers, headers=headers, cookies=cookies)
+
 
 def register_user(username: str, password: str) -> Optional[Dict[str, Any]]:
     """Register a new user"""
-    return execute_request('POST', f"{BASE_URL}/v1/users/create", 
-                         json={"username": username, "password": password})
+    return execute_request('POST', f"{BASE_URL}/v1/users/create",
+                           json={"username": username, "password": password})
+
 
 def login_user(username: str, password: str) -> Optional[Dict[str, Any]]:
     """Login a user"""
     return execute_request('POST', f"{BASE_URL}/v1/users/login",
-                         data={"username": username, "password": password})
+                           data={"username": username, "password": password})

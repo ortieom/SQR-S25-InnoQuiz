@@ -11,10 +11,10 @@ os.environ["PYTHONPATH"] = os.environ.get("PYTHONPATH", "") + os.pathsep + str(p
 
 if __name__ == "__main__":
     import streamlit.web.cli as stcli
-    
+
     # Point to the app/main.py file
     app_path = os.path.join(project_root, "frontend", "app", "main.py")
-    
+
     # Run Streamlit CLI with our app
     sys.argv = ["streamlit", "run", app_path, "--server.port=8501", "--server.address=0.0.0.0"]
-    stcli.main() 
+    stcli.main()

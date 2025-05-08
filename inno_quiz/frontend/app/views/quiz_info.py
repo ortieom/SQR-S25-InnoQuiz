@@ -2,6 +2,7 @@ import streamlit as st
 import uuid
 from frontend.app.utils.api import get_quiz_info, ensure_uuid_format
 
+
 def is_valid_uuid(val):
     """Check if a string is a valid UUID"""
     try:
@@ -10,50 +11,52 @@ def is_valid_uuid(val):
     except ValueError:
         return False
 
+
 def show_quiz_info_page():
     st.title("Quiz Information")
-    
+
     quiz_id = st.text_input("Enter Quiz ID")
     search_button = st.button("Search Quiz")
-    
+
     if search_button and quiz_id:
         if not is_valid_uuid(quiz_id):
             st.error("Invalid Quiz ID format. Please enter a valid UUID.")
             return
-            
+
         # Format to proper UUID string
         formatted_quiz_id = ensure_uuid_format(quiz_id)
-        
+
         # Use our API utility to get quiz info
         quiz = get_quiz_info(formatted_quiz_id)
-        
+
         if quiz:
             st.subheader(quiz["name"])
             st.write(f"Category: {quiz.get('category', 'N/A')}")
-            
+
             # Show quiz details
             with st.container():
                 st.subheader("Quiz Details")
                 st.write(f"Questions: {quiz.get('question_count', 0)}")
                 st.write(f"Created by: {quiz.get('author', 'Anonymous')}")
-                
+
                 # Show status badge based on is_submitted field
                 is_submitted = quiz.get('is_submitted', False)
                 if is_submitted:
                     st.success("Status: Published")
                 else:
                     st.warning("Status: Draft")
-            
+
             # Show leaderboard if available
             if "leaderboard" in quiz:
                 st.subheader("Leaderboard")
                 leaderboard = quiz["leaderboard"]
                 if leaderboard:
                     for i, entry in enumerate(leaderboard, 1):
-                        st.write(f"{i}. {entry.get('username', 'User')} - {entry.get('score', 0)} points")
+                        st.write(
+                            f"{i}. {entry.get('username', 'User')} - {entry.get('score', 0)} points")
                 else:
                     st.info("No scores yet")
-            
+
             # Join quiz button
             if st.session_state.user:
                 if st.button("Join Quiz"):
@@ -64,4 +67,4 @@ def show_quiz_info_page():
             else:
                 st.warning("Please login to join this quiz")
         else:
-            st.error("Quiz not found") 
+            st.error("Quiz not found")
