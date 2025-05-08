@@ -1,34 +1,70 @@
 import streamlit as st
-import requests
+import uuid
+from frontend.app.utils.api import get_quiz_info, ensure_uuid_format
+
+
+def is_valid_uuid(val):
+    """Check if a string is a valid UUID"""
+    try:
+        uuid.UUID(str(val))
+        return True
+    except ValueError:
+        return False
+
 
 def show_quiz_info_page():
     st.title("Quiz Information")
-    
+
     quiz_id = st.text_input("Enter Quiz ID")
     search_button = st.button("Search Quiz")
-    
+
     if search_button and quiz_id:
-        try:
-            # Get quiz information
-            quiz_response = requests.get(f"http://localhost:8000/quizzes/{quiz_id}")
-            if quiz_response.status_code == 200:
-                quiz = quiz_response.json()
-                
-                st.subheader(quiz["title"])
-                st.write(f"Theme: {quiz['theme']}")
-                st.write(f"Description: {quiz['description']}")
-                
-                # Show leaderboard
+        if not is_valid_uuid(quiz_id):
+            st.error("Invalid Quiz ID format. Please enter a valid UUID.")
+            return
+
+        # Format to proper UUID string
+        formatted_quiz_id = ensure_uuid_format(quiz_id)
+
+        # Use our API utility to get quiz info
+        quiz = get_quiz_info(formatted_quiz_id)
+
+        if quiz:
+            st.subheader(quiz["name"])
+            st.write(f"Category: {quiz.get('category', 'N/A')}")
+
+            # Show quiz details
+            with st.container():
+                st.subheader("Quiz Details")
+                st.write(f"Questions: {quiz.get('question_count', 0)}")
+                st.write(f"Created by: {quiz.get('author', 'Anonymous')}")
+
+                # Show status badge based on is_submitted field
+                is_submitted = quiz.get('is_submitted', False)
+                if is_submitted:
+                    st.success("Status: Published")
+                else:
+                    st.warning("Status: Draft")
+
+            # Show leaderboard if available
+            if "leaderboard" in quiz:
                 st.subheader("Leaderboard")
-                leaderboard_response = requests.get(f"http://localhost:8000/quizzes/{quiz_id}/leaderboard")
-                if leaderboard_response.status_code == 200:
-                    leaderboard = leaderboard_response.json()
+                leaderboard = quiz["leaderboard"]
+                if leaderboard:
                     for i, entry in enumerate(leaderboard, 1):
-                        st.write(f"{i}. {entry['username']} - {entry['score']} points")
+                        st.write(
+                            f"{i}. {entry.get('username', 'User')} - {entry.get('score', 0)} points")
                 else:
                     st.info("No scores yet")
-                
+
+            # Join quiz button
+            if st.session_state.user:
+                if st.button("Join Quiz"):
+                    st.session_state.quiz_id = str(formatted_quiz_id)
+                    st.query_params.clear()
+                    st.query_params["page"] = "play_quiz"
+                    st.rerun()
             else:
-                st.error("Quiz not found")
-        except requests.exceptions.RequestException:
-            st.error("Could not connect to the server") 
+                st.warning("Please login to join this quiz")
+        else:
+            st.error("Quiz not found")
