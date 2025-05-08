@@ -6,6 +6,7 @@ from pydantic import BaseModel
 
 
 class Category(Enum):
+    """Quiz category enumeration based on Open Trivia DB categories."""
     undefined = None
     general_knowledge = 9
     entertainment_books = 10
@@ -34,16 +35,22 @@ class Category(Enum):
 
 
 class QuizBase(BaseModel):
+    """Base model for quiz data with essential fields."""
     name: str
     category: int
     is_submitted: bool = False
 
 
 class QuizCreate(QuizBase):
+    """Model for creating a new quiz, extends QuizBase with author information."""
     author_username: str
 
 
 class QuizRead(QuizBase):
+    """
+    Model representing a quiz with all fields including system-generated ones.
+    Used for API responses.
+    """
     id: UUID
     author_username: str
     created_at: datetime
