@@ -1,7 +1,5 @@
-import json
 import random
 import uuid
-from typing import Dict, List, Optional
 
 from locust import HttpUser, between, task
 
@@ -24,7 +22,7 @@ class QuizUser(HttpUser):
         self.password = "testpassword123"
         self.current_quiz_id = None
         self.questions = []
-        self.has_loaded_external_questions = False  # Flag to track if we've already loaded external questions
+        self.has_loaded_external_questions = False
 
     def on_start(self):
         """
