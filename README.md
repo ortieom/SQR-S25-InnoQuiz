@@ -38,7 +38,7 @@ cp .env.example .env
 
 3. Initialize the database:
 ```bash
-alembic upgrade head
+poetry run python3 init_db.py
 ```
 
 ## Running the Application
