@@ -1,7 +1,10 @@
-from fastapi import APIRouter, Depends, HTTPException
+from uuid import UUID
+
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from backend.domain.question_request import QuestionRequest, QuestionResponse
+from backend.domain.quiz import QuizBase, QuizRead
 from backend.domain.quiz_request import (
     QuizInfoResponse,
     LeaderboardResponse,
@@ -9,16 +12,40 @@ from backend.domain.quiz_request import (
     QuizSubmissionRequest,
     QuizSubmissionResponse,
 )
-from backend.service import quiz_service, errors as service_errors
+from backend.service import quiz as quiz_service, errors as service_errors
 from backend.db import get_db
 from backend.deps import get_current_user_from_cookie
 from backend.models.user import User
 
 router = APIRouter(
     prefix="/quiz",
-    tags=["quiz_api"],
+    tags=["quiz"],
     dependencies=[Depends(get_current_user_from_cookie)],
 )
+
+
+@router.post("/", response_model=QuizRead, status_code=status.HTTP_201_CREATED)
+def create_quiz(
+    quiz_in: QuizBase,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user_from_cookie),
+):
+    try:
+        return quiz_service.create_quiz_template(quiz_in, current_user.username, db=db)
+    except service_errors.ServiceError as e:
+        raise HTTPException(status_code=400, detail=str(e)) from None
+
+
+@router.put("/{quiz_id}/submit", response_model=QuizRead)
+def submit_quiz_endpoint(
+    quiz_id: UUID,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user_from_cookie),
+):
+    try:
+        return quiz_service.submit_quiz(quiz_id, db=db)
+    except service_errors.QuizNotFoundError:
+        raise HTTPException(status_code=404, detail="Quiz does not exist") from None
 
 
 @router.post("/{quiz_id}/questions", response_model=QuestionResponse)
