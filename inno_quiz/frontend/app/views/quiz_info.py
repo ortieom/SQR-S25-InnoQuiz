@@ -49,41 +49,42 @@ def show_quiz_info_page():
 
             # Fetch and display leaderboard
             st.subheader(f"Quiz Leaderboard - Top Scores")
-            
+
             # Get leaderboard data from API
             leaderboard_data = get_quiz_leaderboard(formatted_quiz_id)
-            
+
             if leaderboard_data and "entries" in leaderboard_data and leaderboard_data["entries"]:
                 # Convert leaderboard to DataFrame for better display
                 leaderboard_entries = []
-                
+
                 for i, entry in enumerate(leaderboard_data["entries"], 1):
-                    leaderboard_entries.append({
-                        "Rank": i,
-                        "Username": entry.get('username', 'User'),
-                        "Score": entry.get('score', 0),
-                        "Time (sec)": round(entry.get('completion_time', 0), 1),
-                        "Date": entry.get('date', 'N/A').split('T')[0] if isinstance(entry.get('date'), str) else str(entry.get('date', 'N/A'))
-                    })
-                
+                    leaderboard_entries.append(
+                        {
+                            "Rank": i, "Username": entry.get(
+                                'username', 'User'), "Score": entry.get(
+                                'score', 0), "Time (sec)": round(
+                                entry.get(
+                                    'completion_time', 0), 1), "Date": entry.get(
+                                'date', 'N/A').split('T')[0] if isinstance(
+                                entry.get('date'), str) else str(
+                                    entry.get(
+                                        'date', 'N/A'))})
+
                 df = pd.DataFrame(leaderboard_entries)
-                
+
                 # Display top scores with styling
                 st.dataframe(
-                    df,
-                    column_config={
-                        "Rank": st.column_config.NumberColumn(help="Position on leaderboard"),
-                        "Username": st.column_config.TextColumn(help="Player name"),
-                        "Score": st.column_config.NumberColumn(help="Total points", format="%d pts"),
-                        "Time (sec)": st.column_config.NumberColumn(help="Time to complete the quiz", format="%.1f s"),
-                        "Date": st.column_config.TextColumn(help="Completion date")
-                    },
-                    hide_index=True,
-                    use_container_width=True
-                )
-                
+                    df, column_config={
+                        "Rank": st.column_config.NumberColumn(
+                            help="Position on leaderboard"), "Username": st.column_config.TextColumn(
+                            help="Player name"), "Score": st.column_config.NumberColumn(
+                            help="Total points", format="%d pts"), "Time (sec)": st.column_config.NumberColumn(
+                            help="Time to complete the quiz", format="%.1f s"), "Date": st.column_config.TextColumn(
+                            help="Completion date")}, hide_index=True, use_container_width=True)
+
                 # Add a small explanation
-                st.caption("Leaderboard shows the highest scores achieved by users who completed this quiz, sorted by score and completion time.")
+                st.caption(
+                    "Leaderboard shows the highest scores achieved by users who completed this quiz, sorted by score and completion time.")
             else:
                 st.info("No scores yet for this quiz. Be the first to complete it!")
 
