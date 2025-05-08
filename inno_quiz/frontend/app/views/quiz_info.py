@@ -1,8 +1,9 @@
 import streamlit as st
 import uuid
-from frontend.app.utils.api import get_quiz_info
+from frontend.app.utils.api import get_quiz_info, ensure_uuid_format
 
 def is_valid_uuid(val):
+    """Check if a string is a valid UUID"""
     try:
         uuid.UUID(str(val))
         return True
@@ -20,8 +21,11 @@ def show_quiz_info_page():
             st.error("Invalid Quiz ID format. Please enter a valid UUID.")
             return
             
+        # Format to proper UUID string
+        formatted_quiz_id = ensure_uuid_format(quiz_id)
+        
         # Use our API utility to get quiz info
-        quiz = get_quiz_info(str(quiz_id))
+        quiz = get_quiz_info(formatted_quiz_id)
         
         if quiz:
             st.subheader(quiz["name"])
@@ -33,14 +37,12 @@ def show_quiz_info_page():
                 st.write(f"Questions: {quiz.get('question_count', 0)}")
                 st.write(f"Created by: {quiz.get('author', 'Anonymous')}")
                 
-                # Show status badge
-                status = quiz.get('status', 'unknown')
-                if status == 'published':
+                # Show status badge based on is_submitted field
+                is_submitted = quiz.get('is_submitted', False)
+                if is_submitted:
                     st.success("Status: Published")
-                elif status == 'draft':
-                    st.warning("Status: Draft")
                 else:
-                    st.info(f"Status: {status}")
+                    st.warning("Status: Draft")
             
             # Show leaderboard if available
             if "leaderboard" in quiz:
@@ -55,7 +57,7 @@ def show_quiz_info_page():
             # Join quiz button
             if st.session_state.user:
                 if st.button("Join Quiz"):
-                    st.session_state.quiz_id = str(quiz_id)
+                    st.session_state.quiz_id = str(formatted_quiz_id)
                     st.query_params.clear()
                     st.query_params["page"] = "play_quiz"
                     st.rerun()

@@ -1,6 +1,6 @@
 import streamlit as st
 from typing import List, Dict, Optional
-from frontend.app.utils.api import get_quiz_info, add_question, load_external_questions, get_quiz_questions
+from frontend.app.utils.api import get_quiz_info, add_question, load_external_questions, get_quiz_questions, submit_quiz
 
 def show_add_questions_page():
     st.title("Add Questions to Quiz")
@@ -58,10 +58,13 @@ def show_add_questions_page():
                 return
                 
             # Prepare the question data
+            # Convert correct_options from text to indexes
+            correct_indexes = [options.index(option) for option in correct_options if option in options]
+            
             question_data = {
-                "question_text": question_text,
+                "text": question_text,  # Changed from question_text to text
                 "options": options,
-                "correct_options": correct_options
+                "correct_options": correct_indexes  # Now sending indexes instead of text
             }
             
             # Use our API utility to add the question
@@ -105,13 +108,16 @@ def show_add_questions_page():
         st.write(f"Total questions: {len(questions)}")
         
         for i, question in enumerate(questions, 1):
-            with st.expander(f"Question {i}: {question['question_text'][:50]}..."):
-                st.write(question["question_text"])
+            # Handle both possible field names (question_text from older code or text from backend)
+            question_text = question.get("text", question.get("question_text", ""))
+            with st.expander(f"Question {i}: {question_text[:50]}..."):
+                st.write(question_text)
                 
                 # Display options with correct ones highlighted
                 st.write("Options:")
-                for option in question.get("options", []):
-                    is_correct = option in question.get("correct_options", [])
+                for i, option in enumerate(question.get("options", [])):
+                    # Check if this option's index is in correct_options
+                    is_correct = i in question.get("correct_options", [])
                     if is_correct:
                         st.success(f"✓ {option} (Correct)")
                     else:
@@ -128,11 +134,19 @@ def show_add_questions_page():
         
     # Final submit button
     if st.button("Submit Quiz"):
-        # Confirm that the quiz is ready to be taken
+        # Get latest quiz info first
         quiz_data = get_quiz_info(st.session_state.quiz_id)
-        if quiz_data and quiz_data.get("status") == "draft":
-            # Again this endpoint is not implemented in our API utility yet
-            st.success("Quiz is ready for participants!")
-            st.code(f"Quiz ID: {st.session_state.quiz_id}", language="text")
+        
+        # Check if quiz is already submitted
+        quiz_published = quiz_data and quiz_data.get("is_submitted", False)
+        
+        if quiz_published:
+            st.info("Quiz already published!")
         else:
-            st.info("Quiz already published!") 
+            # Call the proper endpoint
+            result = submit_quiz(st.session_state.quiz_id)
+            if result:
+                st.success("Quiz is ready for participants!")
+                st.code(f"Quiz ID: {st.session_state.quiz_id}", language="text")
+            else:
+                st.error("Failed to submit quiz") 

@@ -3,6 +3,7 @@ import streamlit as st
 from typing import Dict, List, Any, Optional
 import time
 import socket
+import uuid
 
 # Base URL for the backend API
 BASE_URL = "http://localhost:8000"
@@ -149,14 +150,25 @@ def get_quiz_info(quiz_id: str) -> Optional[Dict[str, Any]]:
     headers = get_auth_headers()
     cookies = get_auth_cookies()
     
-    return execute_request('GET', f"{BASE_URL}/v1/quiz/{quiz_id}", headers=headers, cookies=cookies)
+    # Ensure proper UUID format
+    formatted_quiz_id = ensure_uuid_format(quiz_id)
+    
+    return execute_request('GET', f"{BASE_URL}/v1/quiz/{formatted_quiz_id}", headers=headers, cookies=cookies)
 
 def add_question(quiz_id: str, question_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
     """Add a question to a quiz"""
     headers = get_auth_headers()
     cookies = get_auth_cookies()
     
-    return execute_request('POST', f"{BASE_URL}/v1/quiz/{quiz_id}/questions", 
+    # Ensure proper UUID format
+    formatted_quiz_id = ensure_uuid_format(quiz_id)
+    
+    # Ensure question data matches the expected backend format
+    # Backend expects: text, options, correct_options (as indexes)
+    if "question_text" in question_data and "text" not in question_data:
+        question_data["text"] = question_data.pop("question_text")
+    
+    return execute_request('POST', f"{BASE_URL}/v1/quiz/{formatted_quiz_id}/questions", 
                            json=question_data, headers=headers, cookies=cookies)
 
 def load_external_questions(quiz_id: str, count: int, category: str) -> Optional[Dict[str, Any]]:
@@ -164,7 +176,10 @@ def load_external_questions(quiz_id: str, count: int, category: str) -> Optional
     headers = get_auth_headers()
     cookies = get_auth_cookies()
     
-    return execute_request('GET', f"{BASE_URL}/v1/quiz/{quiz_id}/load_questions?count={count}&category={category}", 
+    # Ensure proper UUID format
+    formatted_quiz_id = ensure_uuid_format(quiz_id)
+    
+    return execute_request('GET', f"{BASE_URL}/v1/quiz/{formatted_quiz_id}/load_questions?count={count}&category={category}", 
                            headers=headers, cookies=cookies)
 
 def get_quiz_questions(quiz_id: str) -> Optional[Dict[str, Any]]:
@@ -172,18 +187,47 @@ def get_quiz_questions(quiz_id: str) -> Optional[Dict[str, Any]]:
     headers = get_auth_headers()
     cookies = get_auth_cookies()
     
-    return execute_request('GET', f"{BASE_URL}/v1/quiz/{quiz_id}/questions", 
+    # Ensure proper UUID format
+    formatted_quiz_id = ensure_uuid_format(quiz_id)
+    
+    return execute_request('GET', f"{BASE_URL}/v1/quiz/{formatted_quiz_id}/questions", 
                            headers=headers, cookies=cookies)
+
+def ensure_uuid_format(id_value: str) -> str:
+    """
+    Ensures the ID is in proper UUID format
+    Returns the string representation of the UUID
+    """
+    try:
+        # Convert to UUID object and then back to string to ensure proper format
+        return str(uuid.UUID(str(id_value)))
+    except ValueError:
+        # If not a valid UUID, return as is and let the backend handle the error
+        return str(id_value)
+
+def submit_quiz(quiz_id: str) -> Optional[Dict[str, Any]]:
+    """Submit a quiz as ready for participants"""
+    headers = get_auth_headers()
+    cookies = get_auth_cookies()
+    
+    # Ensure proper UUID format
+    formatted_quiz_id = ensure_uuid_format(quiz_id)
+    
+    return execute_request('PUT', f"{BASE_URL}/v1/quiz/{formatted_quiz_id}/submit", 
+                          headers=headers, cookies=cookies)
 
 def submit_quiz_answers(quiz_id: str, answers: Dict[str, Any]) -> Optional[Dict[str, Any]]:
     """Submit answers for a quiz"""
     headers = get_auth_headers()
     cookies = get_auth_cookies()
     
-    # Make sure quiz_id is in the answers
-    answers["quiz_id"] = quiz_id
+    # Ensure proper UUID format
+    formatted_quiz_id = ensure_uuid_format(quiz_id)
     
-    return execute_request('POST', f"{BASE_URL}/v1/quiz/{quiz_id}/answers", 
+    # Make sure quiz_id is in the answers with proper format
+    answers["quiz_id"] = formatted_quiz_id
+    
+    return execute_request('POST', f"{BASE_URL}/v1/quiz/{formatted_quiz_id}/answers", 
                            json=answers, headers=headers, cookies=cookies)
 
 def register_user(username: str, password: str) -> Optional[Dict[str, Any]]:
