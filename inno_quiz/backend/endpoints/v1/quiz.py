@@ -11,8 +11,8 @@ router = APIRouter(prefix="/quiz", tags=["quiz"])
 
 
 @router.post(
-    "/", 
-    response_model=QuizRead, 
+    "/",
+    response_model=QuizRead,
     status_code=status.HTTP_201_CREATED,
     summary="Create Quiz",
     description="Creates a new quiz template with the given name and category"
@@ -20,14 +20,14 @@ router = APIRouter(prefix="/quiz", tags=["quiz"])
 def create_quiz(quiz_in: QuizBase, db: Session = Depends(get_db)):
     """
     Create a new quiz with basic information.
-    
+
     Parameters:
         quiz_in (QuizBase): The basic quiz information including name and category
         db (Session): Database session
-    
+
     Returns:
         QuizRead: The created quiz with ID and other details
-    
+
     Raises:
         HTTPException: 400 if there are validation errors
     """
@@ -39,7 +39,7 @@ def create_quiz(quiz_in: QuizBase, db: Session = Depends(get_db)):
 
 
 @router.put(
-    "/{quiz_id}/submit", 
+    "/{quiz_id}/submit",
     response_model=QuizRead,
     summary="Submit Quiz",
     description="Finalizes a quiz, making it available for participants"
@@ -47,14 +47,14 @@ def create_quiz(quiz_in: QuizBase, db: Session = Depends(get_db)):
 def submit_quiz_endpoint(quiz_id: UUID, db: Session = Depends(get_db)):
     """
     Submit a quiz, marking it as complete and ready for participants.
-    
+
     Parameters:
         quiz_id (UUID): The ID of the quiz to submit
         db (Session): Database session
-    
+
     Returns:
         QuizRead: The updated quiz with submission status
-    
+
     Raises:
         HTTPException: 404 if the quiz is not found
     """

@@ -9,7 +9,7 @@ class HealthResponse(BaseModel):
 
 
 @router.get(
-    "/ping", 
+    "/ping",
     response_model=HealthResponse,
     summary="Health Check Endpoint",
     description="Returns the current status of the API",
@@ -17,7 +17,7 @@ class HealthResponse(BaseModel):
 def health_check():
     """
     Check if the API is up and running.
-    
+
     Returns:
         HealthResponse: Object containing the status "ok" if everything is working
     """

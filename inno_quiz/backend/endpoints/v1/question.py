@@ -13,8 +13,8 @@ router = APIRouter(prefix="/question", tags=["question"])
 
 
 @router.post(
-    "/", 
-    response_model=QuestionRead, 
+    "/",
+    response_model=QuestionRead,
     status_code=status.HTTP_201_CREATED,
     summary="Create Question",
     description="Creates a new question for a quiz with answer options"
@@ -24,14 +24,14 @@ async def create_question_endpoint(
 ):
     """
     Create a new question for a quiz with answer options.
-    
+
     Parameters:
         question_in (QuestionCreate): The question data including text, quiz_id and answer options
         db (AsyncSession): Database session
-    
+
     Returns:
         QuestionRead: The created question with ID and other details
-    
+
     Raises:
         HTTPException: 404 if the quiz is not found
         HTTPException: 400 if there are validation errors
@@ -45,7 +45,7 @@ async def create_question_endpoint(
 
 
 @router.get(
-    "/quiz/{quiz_id}", 
+    "/quiz/{quiz_id}",
     response_model=List[QuestionRead],
     summary="Get Quiz Questions",
     description="Retrieves all questions for a specific quiz"
@@ -55,14 +55,14 @@ async def get_quiz_questions_endpoint(
 ):
     """
     Get all questions and their answer options for a specific quiz.
-    
+
     Parameters:
         quiz_id (UUID): The ID of the quiz
         db (AsyncSession): Database session
-    
+
     Returns:
         List[QuestionRead]: List of questions with their answer options
-    
+
     Raises:
         HTTPException: 404 if the quiz is not found
         HTTPException: 400 if there are validation errors
