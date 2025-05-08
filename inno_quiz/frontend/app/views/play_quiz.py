@@ -1,5 +1,6 @@
 import streamlit as st
-from frontend.app.utils.api import get_quiz_info, get_quiz_questions, submit_quiz_answers
+from frontend.app.utils.api import get_quiz_info, get_quiz_questions, submit_quiz_answers, ensure_uuid_format
+import time
 
 def show_play_quiz_page():
     st.title("Play Quiz")
@@ -17,7 +18,8 @@ def show_play_quiz_page():
             'score': 0,
             'answers': [],
             'correct_answers': 0,
-            'wrong_answers': 0
+            'wrong_answers': 0,
+            'start_time': None
         }
     
     # If no quiz is loaded, show input form
@@ -26,9 +28,12 @@ def show_play_quiz_page():
         start_button = st.button("Start Quiz")
         
         if start_button and quiz_id:
+            # Format quiz_id properly
+            formatted_quiz_id = ensure_uuid_format(quiz_id)
+            
             # Use our API utility to get quiz info and questions
-            quiz = get_quiz_info(quiz_id)
-            questions_data = get_quiz_questions(quiz_id)
+            quiz = get_quiz_info(formatted_quiz_id)
+            questions_data = get_quiz_questions(formatted_quiz_id)
             
             if quiz and questions_data and "questions" in questions_data:
                 questions = questions_data["questions"]
@@ -39,13 +44,15 @@ def show_play_quiz_page():
                 
                 # Initialize quiz state
                 st.session_state.quiz_state = {
-                    'quiz_id': quiz_id,
+                    'quiz_id': formatted_quiz_id,
                     'questions': questions,
                     'current_question_index': 0,
                     'score': 0,
                     'answers': [],
                     'correct_answers': 0,
-                    'wrong_answers': 0
+                    'wrong_answers': 0,
+                    'start_time': time.time(),
+                    'user_answers': {}
                 }
                 st.rerun()
             else:
@@ -62,13 +69,17 @@ def show_play_quiz_page():
         
         # Question counter
         st.subheader(f"Question {current_index + 1}/{len(questions)}")
-        st.write(current_question["question_text"])
+        
+        # Handle both field names (text and question_text)
+        question_text = current_question.get("text", current_question.get("question_text", ""))
+        st.write(question_text)
         
         # Show options
         options = current_question.get("options", [])
-        selected_option = st.radio(
+        selected_option_index = st.radio(
             "Select your answer:",
-            options,
+            range(len(options)),
+            format_func=lambda i: options[i],
             key=f"question_{current_index}"
         )
         
@@ -78,13 +89,18 @@ def show_play_quiz_page():
         
         # Submit answer button
         if st.button("Submit Answer"):
-            # Store this answer
+            # Store this answer with the correct format
             question_id = current_question.get("id", f"q{current_index}")
-            st.session_state.quiz_state["user_answers"][question_id] = selected_option
             
-            # Check if answer is correct
+            # Add this answer to the list
+            st.session_state.quiz_state["answers"].append({
+                "question_id": question_id,
+                "selected_options": [selected_option_index]  # Backend expects a list
+            })
+            
+            # Check if answer is correct - compare indexes
             correct_options = current_question.get("correct_options", [])
-            if selected_option in correct_options:
+            if selected_option_index in correct_options:
                 st.session_state.quiz_state['correct_answers'] += 1
             else:
                 st.session_state.quiz_state['wrong_answers'] += 1
@@ -100,11 +116,15 @@ def show_play_quiz_page():
                 wrong = st.session_state.quiz_state['wrong_answers']
                 score = (correct / total_questions) * 100
                 
+                # Calculate completion time
+                completion_time = time.time() - st.session_state.quiz_state.get('start_time', time.time())
+                
                 # Prepare submission data
                 submission_data = {
+                    "quiz_id": st.session_state.quiz_state['quiz_id'],
                     "user_id": st.session_state.user["username"],
-                    "score": score,
-                    "answers": st.session_state.quiz_state["user_answers"]
+                    "answers": st.session_state.quiz_state["answers"],
+                    "completion_time": completion_time
                 }
                 
                 # Submit final score using our API utility
@@ -126,6 +146,10 @@ def show_play_quiz_page():
                         st.metric("Wrong Answers", wrong)
                     
                     st.subheader(f"Final Score: {score:.1f}%")
+                    
+                    # Show score from API result if available
+                    if "score" in result:
+                        st.info(f"Your official score: {result['score']}/{result.get('total', total_questions)}")
                     
                     # Show leaderboard if available in quiz info
                     quiz = get_quiz_info(st.session_state.quiz_state['quiz_id'])
