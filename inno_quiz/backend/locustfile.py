@@ -16,7 +16,7 @@ class QuizUser(HttpUser):
     - Viewing leaderboard
     """
     wait_time = between(1, 3)  # Wait 1-3 seconds between tasks
-    
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.token = None
@@ -25,7 +25,7 @@ class QuizUser(HttpUser):
         self.current_quiz_id = None
         self.questions = []
         self.has_loaded_external_questions = False  # Flag to track if we've already loaded external questions
-    
+
     def on_start(self):
         """
         Register and log in when simulation starts
@@ -34,7 +34,7 @@ class QuizUser(HttpUser):
         self.register()
         # Log in
         self.login()
-    
+
     def register(self):
         """
         Register a new user to the application
@@ -53,7 +53,7 @@ class QuizUser(HttpUser):
                 self.register()
             else:
                 response.failure(f"Registration failed: {response.text}")
-    
+
     def login(self):
         """
         Login to the application
@@ -72,33 +72,33 @@ class QuizUser(HttpUser):
                 # uses cookie-based auth set by the login endpoint
             else:
                 response.failure(f"Login failed: {response.text}")
-    
+
     @task(5)
     def get_user_info(self):
         """
         Get the current user information
         """
         with self.client.get(
-            "/v1/users/me", 
+            "/v1/users/me",
             name="User Info",
             catch_response=True
         ) as response:
             if response.status_code != 200:
                 response.failure(f"Failed to get user info: {response.text}")
-    
+
     @task(10)
     def get_user_quizzes(self):
         """
         Get quizzes created by the current user
         """
         with self.client.get(
-            f"/v1/users/{self.username}/quizzes", 
+            f"/v1/users/{self.username}/quizzes",
             name="User Quizzes",
             catch_response=True
         ) as response:
             if response.status_code != 200:
                 response.failure(f"Failed to get user quizzes: {response.text}")
-    
+
     @task(5)
     def create_quiz(self):
         """
@@ -110,7 +110,7 @@ class QuizUser(HttpUser):
             "category": 9,  # General Knowledge category (from the Category enum)
             "is_submitted": False
         }
-        
+
         with self.client.post(
             "/v1/quiz/",
             json=quiz_data,
@@ -123,7 +123,7 @@ class QuizUser(HttpUser):
                 print(f"Successfully created quiz with ID: {self.current_quiz_id}")
             else:
                 response.failure(f"Failed to create quiz: {response.text}")
-    
+
     @task(8)
     def view_quiz_info(self):
         """
@@ -131,7 +131,7 @@ class QuizUser(HttpUser):
         """
         if not self.current_quiz_id:
             return
-            
+
         with self.client.get(
             f"/v1/quiz/{self.current_quiz_id}",
             name="Quiz Info",
@@ -139,7 +139,7 @@ class QuizUser(HttpUser):
         ) as response:
             if response.status_code != 200:
                 response.failure(f"Failed to get quiz info: {response.text}")
-    
+
     @task(8)
     def view_quiz_questions(self):
         """
@@ -147,7 +147,7 @@ class QuizUser(HttpUser):
         """
         if not self.current_quiz_id:
             return
-            
+
         with self.client.get(
             f"/v1/quiz/{self.current_quiz_id}/questions",
             name="Quiz Questions",
@@ -159,7 +159,7 @@ class QuizUser(HttpUser):
                 print(f"Loaded {len(self.questions)} questions for quiz {self.current_quiz_id}")
             else:
                 response.failure(f"Failed to get quiz questions: {response.text}")
-    
+
     @task(3)
     def add_question_to_quiz(self):
         """
@@ -167,7 +167,7 @@ class QuizUser(HttpUser):
         """
         if not self.current_quiz_id:
             return
-            
+
         # Match the QuestionRequest model structure
         # The correct format is:
         # - text: str
@@ -176,14 +176,14 @@ class QuizUser(HttpUser):
         question_data = {
             "text": f"Test question {random.randint(1, 100)}?",
             "options": [
-                "Option 1", 
-                "Option 2", 
-                "Option 3", 
+                "Option 1",
+                "Option 2",
+                "Option 3",
                 "Option 4"
             ],
             "correct_options": [0]  # Index 0 is the correct answer (Option 1)
         }
-        
+
         with self.client.post(
             f"/v1/quiz/{self.current_quiz_id}/questions",
             json=question_data,
@@ -194,7 +194,7 @@ class QuizUser(HttpUser):
                 response.failure(f"Failed to add question: {response.text}")
             else:
                 print(f"Successfully added question to quiz {self.current_quiz_id}")
-    
+
     @task(1)
     def load_external_questions(self):
         """
@@ -203,20 +203,21 @@ class QuizUser(HttpUser):
         # Skip if we've already loaded external questions or have no quiz ID
         if not self.current_quiz_id or self.has_loaded_external_questions:
             return
-            
+
         with self.client.get(
-            f"/v1/quiz/{self.current_quiz_id}/load_questions?count=5&category=9",  # Use category id instead of name
+            # Use category id instead of name
+            f"/v1/quiz/{self.current_quiz_id}/load_questions?count=5&category=9",
             name="Load External Questions",
             catch_response=True
         ) as response:
             # Mark as completed regardless of outcome to prevent retries
             self.has_loaded_external_questions = True
-            
+
             if response.status_code == 200:
                 print(f"Successfully loaded external questions for quiz {self.current_quiz_id}")
             else:
                 response.failure(f"Failed to load external questions: {response.text}")
-    
+
     @task(5)
     def submit_quiz_answers(self):
         """
@@ -224,13 +225,13 @@ class QuizUser(HttpUser):
         """
         if not self.current_quiz_id or not self.questions:
             return
-            
+
         # Prepare random answers
         answers = []
         for question in self.questions:
             question_id = question.get("id")
             options = question.get("options", [])
-            
+
             if options:
                 # Choose a random option
                 chosen_option = random.choice(options)
@@ -238,13 +239,13 @@ class QuizUser(HttpUser):
                     "question_id": question_id,
                     "answer_id": chosen_option.get("id")
                 })
-        
+
         submission_data = {
             "quiz_id": self.current_quiz_id,
             "user_id": self.username,  # This will be overridden by the backend
             "answers": answers
         }
-        
+
         with self.client.post(
             f"/v1/quiz/{self.current_quiz_id}/answers",
             json=submission_data,
@@ -253,7 +254,7 @@ class QuizUser(HttpUser):
         ) as response:
             if response.status_code != 200:
                 response.failure(f"Failed to submit quiz answers: {response.text}")
-    
+
     @task(10)
     def view_leaderboard(self):
         """
@@ -261,11 +262,11 @@ class QuizUser(HttpUser):
         """
         if not self.current_quiz_id:
             return
-            
+
         with self.client.get(
             f"/v1/quiz/{self.current_quiz_id}/leaderboard",
             name="Leaderboard",
             catch_response=True
         ) as response:
             if response.status_code != 200:
-                response.failure(f"Failed to view leaderboard: {response.text}") 
+                response.failure(f"Failed to view leaderboard: {response.text}")
