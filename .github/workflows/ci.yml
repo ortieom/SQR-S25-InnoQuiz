@@ -42,3 +42,25 @@ jobs:
         
         # Run all tests with coverage
         poetry run pytest --cov=. --cov-report=term --cov-fail-under=60 
+    
+    - name: Initialize database for load testing
+      run: |
+        cd inno_quiz/backend
+        # Make sure the database is initialized with tables
+        if [ -f init_db.py ]; then
+          poetry run python init_db.py
+        fi
+    
+    - name: Start backend server for load testing
+      run: |
+        cd inno_quiz/backend
+        # Start the server in the background
+        poetry run uvicorn main:app --host 0.0.0.0 --port 8000 &
+        # Wait for the server to start
+        sleep 5
+      
+    - name: Run load tests
+      run: |
+        cd inno_quiz/backend
+        # Run load tests in headless mode for a short duration
+        poetry run locust --headless -u 10 -r 1 --run-time 30s --host http://localhost:8000 -f locustfile.py --exit-code-on-error 0 
